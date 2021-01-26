@@ -6,6 +6,11 @@ const JSON_RPC: &'static str = "2.0";
 
 pub(crate) type Result<T> = std::result::Result<T, T>;
 
+pub struct JsonRpcError {
+    code: i32,
+    message: String,
+}
+
 impl From<Result<String>> for JsonRpcResult {
     fn from(result: Result<String>) -> Self {
         let jsonrpc = JSON_RPC.into();
@@ -31,6 +36,7 @@ impl From<Result<String>> for JsonRpcResult {
                     jsonrpc,
                     id,
                     result: "".to_string(),
+                    //TODO need a JsonRpcError struct { code: i32, message: String } but since we can't di
                     error: err,
                 }
             }

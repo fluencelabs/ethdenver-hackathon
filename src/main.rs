@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 use serde_json::Value;
 use std::sync::atomic::{AtomicUsize, Ordering}; // to be replaced
+use tiny_keccak::{Hasher, Sha3};
 
 mod curl;
 mod errors;
@@ -110,6 +111,15 @@ pub fn eth_get_balance(
     }
 }
 
+// #[fce]
+pub fn sha3(msg: Vec<u8>) -> [u8; 32] {
+    let mut sha3 = Sha3::v256();
+    let mut digest = [0u8; 32];
+    sha3.update(&msg);
+    sha3.finalize(&mut digest);
+    digest
+}
+
 pub fn main() {}
 
 #[cfg(test)]
@@ -187,5 +197,43 @@ mod test {
         assert!(res.error.len() == 0);
         let block_height = u64::from_str_radix(&res.result[2..], 16).unwrap();
         assert!(block_height > KOVAN_BLOCK_HEIGHT as u64);
+    }
+
+    #[test]
+    fn uniswap_test() {
+        // https://mainnet.infura.io/v3/0cc023286cae4ab886598ecd14e256fd
+
+        let factory_addr = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5a";
+        // let usdc_addr = "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc";
+        let token_1 = "0xCAFE000000000000000000000000000000000000";
+        let token_2 = "0xF00D000000000000000000000000000000000000";
+        let abi = r#"[{"inputs":[{"internalType":"address","name":"_feeToSetter","type":"address"}],"payable":false,
+                            "stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,
+                            "internalType":"address","name":"token0","type":"address"},{"indexed":true,"internalType":"address",
+                            "name":"token1","type":"address"},{"indexed":false,"internalType":"address","name":"pair","type":"address"},
+                            {"indexed":false,"internalType":"uint256","name":"","type":"uint256"}],"name":"PairCreated","type":"event"},
+                            {"constant":true,"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"allPairs","outputs":
+                            [{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},
+                            {"constant":true,"inputs":[],"name":"allPairsLength","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
+                            "payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"tokenA","type":"address"},
+                            {"internalType":"address","name":"tokenB","type":"address"}],"name":"createPair","outputs":[{"internalType":"address","name":"pair","type":"address"}],
+                            "payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],
+                            "name":"feeTo","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},
+                            {"constant":true,"inputs":[],"name":"feeToSetter","outputs":[{"internalType":"address","name":"","type":"address"}],
+                            "payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"address","name":"","type":"address"},
+                            {"internalType":"address","name":"","type":"address"}],"name":"getPair","outputs":[{"internalType":"address","name":"","type":"address"}],
+                            "payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"address","name":"_feeTo","type":"address"}],
+                            "name":"setFeeTo","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},
+                            {"constant":false,"inputs":[{"internalType":"address","name":"_feeToSetter","type":"address"}],"name":"setFeeToSetter",
+                            "outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}]"#;
+
+        /*
+                address pair = address(uint(keccak256(abi.encodePacked(
+                hex'ff',
+                factory,
+                keccak256(abi.encodePacked(token0, token1)),
+                hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f'
+        ))));
+                */
     }
 }
