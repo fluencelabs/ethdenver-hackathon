@@ -23,7 +23,6 @@ pub fn eth_hash_method(input: Vec<u8>) -> Vec<u8> {
 
     keccak.update(&input);
     keccak.finalize(&mut output);
-    println!("output: {:?}", output);
     output.to_vec()
 }
 
@@ -32,10 +31,10 @@ pub fn test_eth_hash_method() -> String {
     use hex::encode;
 
     // see https://docs.soliditylang.org/en/latest/abi-spec.html#examples
-    let input = b"baz(uint,bool)".to_vec();
-    let expected = String::from("0xcdcd77c0");
+    let input = b"baz(uint32,bool)".to_vec();
+    let expected = String::from("cdcd77c0");
     let res = eth_hash_method(input);
-    let res = format!("0x{}", hex::encode(&res[..4]));
+    let res = format!("{}", hex::encode(&res[..4]));
 
     if res == expected {
         return "test passed".to_string();
