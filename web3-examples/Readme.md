@@ -40,7 +40,7 @@ Looking over the project structure we have the facade and several other ...
 
 [WASM](https://developer.mozilla.org/en-US/docs/WebAssembly) is a relatively new concept and WASM for backend services is even newer, e.g., [wasmer](https://github.com/wasmerio/wasmer), [WASI](https://github.com/CraneStation/wasi), and progressing at a rapid clip. Yet, there are still limitations we need to be aware of. For example, sock support and async capabilities are currently not available but should be soon. Not to worry, we can work with and around those constraints and still build effective solutions.  
 
-For the the time being, our go-to transport comes courtesy of [curl](https://curl.se/docs/) as a service. Please note that curl generally does not provide web socket (ws, wss) capabilities, https is our transport tool of choice. This has a few implications especially with blockchain client access as a service, e.g., a subset of the Ethereum JSON RPC calls in [Infura](https://infura.io/docs/ethereum/wss/introduction), for example, are only accessible via wss, although [Alchemy](https://www.alchemyapi.io/) offers an alternative.
+For the the time being, our go-to transport comes courtesy of [curl](https://curl.se/docs/) as a service. Please note that curl generally does not provide web socket (ws, wss) capabilities, https is our transport tool of choice. This has a few implications especially with blockchain client access as a service, e.g., a subset of the Ethereum JSON RPC calls in [Infura](https://infura.io/docs/ethereum/wss/introduction), for example, are only accessible via wss, although [Alchemy](https://www.alchemyapi.io/) offers an alternative. Using curl generally has no performance penalties and in most cases actually speeds things, it should be noted that leaving the secure wasm sandbox comes at a cost: a node provider can easily monitor and exploit curl call data, such as api-keys. If that is a major, e.g., production, concern, we recommend you run your own node; if it is more of a testnet concern, we recommend using project-specific api-keys, and rotate them periodically. As soon as WASM enables sockets, curl calls can be replace with wasm-native transport(s).
 
 As mentioned earlier, async is currently not quite there but the Fluence team has implemented a cron-based work-around to allow polling. See below, TODO need document link, for more info.
 
@@ -82,12 +82,12 @@ pub fn eth_get_balance(url: String, account: String, block_number: String) -> Js
 ```
 1.  We apply the fce macro to the function, which returns our custom JsonRpcResult (see fce_results.rs)
 2.  We specify and the actual method name, which by the way, may deviate from the Ethereum spec's depending on the eth-client provider. See eth_filters.rs for an example.
-3.  We generate our nonce, aka id, which is based on the nonce counter in eth_utils.rs:
+3.  We generate our nonce, aka id, which is based on the thread-safe nonce counter implemented in eth_utils.rs:
 
 ```rust
 pub static NONCE_COUNTER: AtomicUsize = AtomicUsize::new(1);
 ```
-and provides a safe running counter.
+
 4. We handle out block_number tag to makes sure it's either a valid (positive) number or one of ["latest", "pending", "earliest"]. Note that many of the node-as-a-service providers do not provide historical data without users signing up for archive services. 
 5. Now we format our params and args into a json-rpc suitable for curl
 6.  We finally check our response and return the result
@@ -120,10 +120,55 @@ Note that for the purpose of the examples, we return the raw result(s), which ar
     }
 ```
 
-### Developer Notes
-#### A Note On Testing  
-Due to limitations in WASI for another few months, unit tests are not working for #[fce] marked functions when an external binary, such as curl, is imported. A workaround is to implement test methods in fce and run them in fce-repl.
 
+#### A Note On Testing  
+Due to limitations in WASI for another few months, Rust unit tests proper are not working for fce modules when an external binary, such as curl, is imported. A workaround is to implement test methods in fce and run them in fce-repl. The examples below are based on eth_getBalance discussed above. 
+
+```rust
+#[fce]
+fn test_eth_get_balance_good(url: String) -> TestResult {
+    let burn_address = String::from("0x0000000000000000000000000000000000000000");
+    let block_height = String::from("latest");
+    // burn account balances, min, per 1/27/21:
+    // https://etherscan.io/address/0x0000000000000000000000000000000000000000; 8412.0
+    // https://kovan.etherscan.io/address/0x0000000000000000000000000000000000000000; 213.0
+    // https://rinkeby.etherscan.io/address/0x0000000000000000000000000000000000000000; 1566.0
+    // https://goerli.etherscan.io/address/0x0000000000000000000000000000000000000000; 1195.0
+
+    let result = eth_get_balance(url, burn_address, block_height);
+    let hex_balance: String = result.result;
+    let wei_balance: u128 = u128::from_str_radix(&hex_balance[2..], 16).unwrap();
+    let eth_balance: f64 = wei_to_eth(&wei_balance);
+    if eth_balance > 213.0 {
+        return TestResult::from(Result::from(Ok(String::from(""))));
+    }
+    let err_msg = format!("expected: gt {}, actual {:.2}", 213.0, eth_balance);
+    TestResult::from(Result::from(Err(err_msg)))
+}
+
+#[fce]
+fn test_eth_get_balance_bad(url: String) -> TestResult {
+    let burn_address = String::from("0x0000000000000000000000000000000000000000");
+    let block_height = String::from("latest");
+    // burn account balances, min, per 1/27/21:
+    // https://etherscan.io/address/0x0000000000000000000000000000000000000000; 8412.0
+    // https://kovan.etherscan.io/address/0x0000000000000000000000000000000000000000; 213.0
+    // https://rinkeby.etherscan.io/address/0x0000000000000000000000000000000000000000; 1566.0
+    // https://goerli.etherscan.io/address/0x0000000000000000000000000000000000000000; 1195.0
+
+    let result = eth_get_balance(url, burn_address, block_height);
+    let hex_balance: String = result.result;
+    let wei_balance: u128 = u128::from_str_radix(&hex_balance[2..], 16).unwrap();
+    let eth_balance: f64 = wei_to_eth(&wei_balance);
+    if eth_balance > 1_000_000.0 {
+        return TestResult::from(Result::from(Ok(String::from(""))));
+    }
+    let err_msg = format!("expected: gt {}, actual {:.2}", 1_000_000, eth_balance);
+    TestResult::from(Result::from(Err(err_msg)))
+}
+```
+
+Here we test eth_get_balance with the burn account 0x0000000000000000000000000000000000000000 for the the latest block and return the result as TestResult (see eth_utils.rs). Running the functions in fce-repl:
 
 ```bash
 2> call facade test_eth_get_balance_bad  ["https://eth-mainnet.alchemyapi.io/v2/<your key>"]
@@ -147,50 +192,54 @@ result: Object({"error": String(""), "test_passed": Number(1)})
 4>
 ```  
 
-A small, self-contained service, for example, could be concerned wit ABI method id and topics generation. See solidity reference ():
+A small, self-contained service, for example, could generate method id and topics generation. See [Solidity reference](https://docs.soliditylang.org/en/latest/abi-spec.html). A simple method generation may look like so:
 
-```
+```rust
 #[fce]
 use tiny_keccak::Sha3;
 
-pub fn method_hasher(fn_name:String, params: String) -> String {
-
+#[fce]
+pub fn eth_hash_method_id(input: Vec<u8>) -> Vec<u8> {
+    let mut output = [0u8; 32];
     let mut keccak = Keccak::v256();
-    let mut output = [0u8; 32];
 
-    let input = b"baz(uint32,bool)";
-    let mut output = [0u8; 32];
-    keccak.update(input_a);
+    keccak.update(&input);
     keccak.finalize(&mut output);
-    println!("digest: {:x?}", &output[..16]);
-    println!("digest: 0x{}", hex::encode(&output[..4]));
-
-    let v = 69u32;
-    let mut vb: [u8; 32] = [0; 32];
-    let res = v.to_be_bytes();
-
-    println!("{:?}", vb);
-    println!("res: {:?}", res);
+    output.to_vec()
 }
-
 ```
 
-#### A Note On WASM  
-The Fleunce stack is utilizing [WASI](https://wasi.dev/), the web assembly system interface. Aside from the fact that WASI itself is under active development, this als means that WASM modules not compliant with WASI cannot be directly ported to the Fluence stack. Please keep this in mind. Fluence is curently supporting WASI v 0.1.7... ().
+which the corresponding test:
 
-For valid types, please see ;
+```rust
+#[fce]
+pub fn test_eth_hash_method_id() -> String {
+    use hex::encode;
 
-Error Handling:
-Error handling is currently not quite as ergoanic as in std Rust and takes a little effort both in creating handling Results. have a look at  and  for examples.  
+    // see https://docs.soliditylang.org/en/latest/abi-spec.html#examples
+    let input = b"baz(uint32,bool)".to_vec();
+    let expected = String::from("cdcd77c0");
+    let res = eth_hash_method(input);
+    let res = format!("{}", hex::encode(&res[..4]));
 
+    if res == expected {
+        return "test passed".to_string();
+    }
+    "test failed".to_string()
+}
+```
 
+and fce-repl execution:
 
-#### Ethereum JSON-RPC  
-If you re running your own eth client, you should be fine as long as you are
+```bash
+4> call facade test_eth_hash_method []
+result: String("test passed")
+ elapsed time: 98.266µs
 
-Since curl does not easily provide websocket support, it may be easier to stick with eth client service providers that accept HTTP flavors. 
+5>
+```
 
-[Infura]() requires 
+Please note that if this function was part of a module not importing an external service, Rust unit tests can be used.
 
 #### Curl  
 --max-time, -m: set the timeout in seconds
