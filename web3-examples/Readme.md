@@ -56,19 +56,77 @@ Let's have a look at one of the examples, eth_get_balance, from `eth_calls_test.
 insert/link to eth_get_balance
 ```  
 
-This example is based on the Ethereum JSON RPC [eth_getBalance](https://eth.wiki/json-rpc/API#eth_getbalance) and returns the balance of the named account for the destination chain specified  
+This example is based on the Ethereum JSON RPC [eth_getBalance](https://eth.wiki/json-rpc/API#eth_getbalance) and returns the balance of the named account for the destination chain specified. We implement that method by combining our custom code with the curl service.
+```rust
+#[fce]
+pub fn eth_get_balance(url: String, account: String, block_number: String) -> JsonRpcResult {
+    let method = String::from("eth_getBalance");
+    let id = get_nonce();
 
+    let block_identifier: String;
+    let number_test = block_number.parse::<u64>();
+    if number_test.is_ok() {
+        block_identifier = format!("0x{:x}", number_test.unwrap());
+    } else if BLOCK_NUMBER_TAGS.contains(&block_number.as_str()) {
+        block_identifier = String::from(block_number);
+    } else {
+        block_identifier = String::from("latest");
+    }
+
+    let params: Vec<String> = vec![account, block_identifier];
+    let curl_args: String = Request::new(method, params, id).as_sys_string(&url);
+    let response: String = unsafe { curl_request(curl_args) };
+
+    check_response_string(response, &id)
+}
+```
+1.  We apply the fce macro to the function, which returns our custom JsonRpcResult (see fce_results.rs)
+2.  We specify and the actual method name, which by the way, may deviate from the Ethereum spec's depending on the eth-client provider. See eth_filters.rs for an example.
+3.  We generate our nonce, aka id, which is based on the nonce counter in eth_utils.rs:
+
+```rust
+pub static NONCE_COUNTER: AtomicUsize = AtomicUsize::new(1);
+```
+and provides a safe running counter.
+4. We handle out block_number tag to makes sure it's either a valid (positive) number or one of ["latest", "pending", "earliest"]. Note that many of the node-as-a-service providers do not provide historical data without users signing up for archive services. 
+5. Now we format our params and args into a json-rpc suitable for curl
+6.  We finally check our response and return the result
+
+We can now run that function in the fce-repl:
+```bash
+2> call facade eth_get_balance  ["https://eth-mainnet.alchemyapi.io/v2/<your key>", "0x0000000000000000000000000000000000000000", "latest"]
+timestamp: 1612167486365
+curl args: -X POST --data '{"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":2}' https://eth-mainnet.alchemyapi.io/v2/<your key>
+INFO: Running "/usr/bin/curl -X POST --data {"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":2} https://eth-mainnet.alchemyapi.io/v2/<your key>" ...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   182  100    62  100   120     83    161 --:--:-- --:--:-- --:--:--   243
+result: Object({"error": String(""), "id": Number(2), "jsonrpc": String("2.0"), "result": String("0x1c804d8c47f4e326821")})
+ elapsed time: 756.728025ms
+
+3>
+```
+Note that for the purpose of the examples, we return the raw result(s), which are usually hex strings. A due to the Result type, you need to explicitly check the error string before processing the result:
+
+```rust
+    // <snip>
+    let result =  JsonRpcResult {error: "".to_string(), 
+                                 id: 2u64,
+                                 jsonrpc: "2.0".to_string(),
+                                 result: "0x1c804d8c47f4e326821".to_string()};
+    match result.error.len() {
+       0 => println!("do something with ok such as {}", u128::from_str_radix(result[2..], 16)),
+        _ => println!("do something with err")
+    }
+```
 
 ### Developer Notes
 #### A Note On Testing  
 Due to limitations in WASI for another few months, unit tests are not working for #[fce] marked functions when an external binary, such as curl, is imported. A workaround is to implement test methods in fce and run them in fce-repl.
 
 
-
-
 ```bash
 2> call facade test_eth_get_balance_bad  ["https://eth-mainnet.alchemyapi.io/v2/<your key>"]
-timestamp: 1612052469735
 curl args: -X POST --data '{"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":1}' https://eth-mainnet.alchemyapi.io/v2/<your key>
 INFO: Running "/usr/bin/curl -X POST --data {"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":1} https://eth-mainnet.alchemyapi.io/v2/<your key>" ...
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -78,7 +136,6 @@ result: Object({"error": String("expected: gt 1000000, actual 8412.06"), "test_p
  elapsed time: 516.627078ms
 
 3> call facade test_eth_get_balance_good  ["https://eth-mainnet.alchemyapi.io/v2/<your key>"]
-timestamp: 1612052485019
 curl args: -X POST --data '{"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":2}' https://eth-mainnet.alchemyapi.io/v2/<your key>
 INFO: Running "/usr/bin/curl -X POST --data {"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":2} https://eth-mainnet.alchemyapi.io/v2/<your key>" ...
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -117,11 +174,6 @@ pub fn method_hasher(fn_name:String, params: String) -> String {
 }
 
 ```
-
-
-
-
-
 
 #### A Note On WASM  
 The Fleunce stack is utilizing [WASI](https://wasi.dev/), the web assembly system interface. Aside from the fact that WASI itself is under active development, this als means that WASM modules not compliant with WASI cannot be directly ported to the Fluence stack. Please keep this in mind. Fluence is curently supporting WASI v 0.1.7... ().
