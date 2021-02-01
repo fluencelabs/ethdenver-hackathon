@@ -42,20 +42,29 @@ Looking over the project structure we have the facade and several other ...
 
 For the the time being, our go-to transport comes courtesy of [curl](https://curl.se/docs/) as a service. Please note that curl generally does not provide web socket (ws, wss) capabilities, https is our transport tool of choice. This has a few implications especially with blockchain client access as a service, e.g., a subset of the Ethereum JSON RPC calls in [Infura](https://infura.io/docs/ethereum/wss/introduction), for example, are only accessible via wss, although [Alchemy](https://www.alchemyapi.io/) offers an alternative.
 
-In addition, async is currently not quite there but the Fluence team has implemented a cron-based work-around to allow polling. See below, TODO need document link, for mor einfo.
+As mentioned earlier, async is currently not quite there but the Fluence team has implemented a cron-based work-around to allow polling. See below, TODO need document link, for more info.
 
-In the web3-examples folder, we illustrate the core concepts of Web3 service development with a few Ethereum JSON-RPC calls. In a nutshell, FCE compliant services are written and compiled with `fce build`. The resulting wasm modules can then be locally inspected and executed with `fce-repl`.
+Another limitation that requires a little extra care concerns error management. Specifically, the Result<_,_> does not work in WASI. If you want to return a Result, you need to implement your own.
+See web3-examples/facade/src/fce_results.rs for examples. 
+
+In the web3-examples folder, we illustrate the core concepts of Web3 service development with a few Ethereum JSON-RPC calls. In a nutshell, FCE compliant services are written and compiled with `fce build`. The resulting WASM modules can then be locally inspected and executed with `fce-repl`.
 
 ### A Simple Example
-TBD
+Let's have a look at one of the examples, eth_get_balance, from `eth_calls_test.rs`:  
 
+```rust
+insert/link to eth_get_balance
+```  
+
+This example is based on the Ethereum JSON RPC [eth_getBalance](https://eth.wiki/json-rpc/API#eth_getbalance) and returns the balance of the named account for the destination chain specified  
 
 
 ### Developer Notes
 #### A Note On Testing  
-Due to limitations in WASI for another few months, unit tests are not working for #[fce] marked functions when an external binary, such as curl, is imported. A workaround is to   
+Due to limitations in WASI for another few months, unit tests are not working for #[fce] marked functions when an external binary, such as curl, is imported. A workaround is to implement test methods in fce and run them in fce-repl.
 
-fce-repl examples from `eth_calls_test.rs`:
+
+
 
 ```bash
 2> call facade test_eth_get_balance_bad  ["https://eth-mainnet.alchemyapi.io/v2/<your key>"]

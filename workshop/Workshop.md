@@ -1,4 +1,4 @@
-# Workshop preparaton
+# Workshop preparation
 
 ## Overview
 * Fluence Stack & Tooling
@@ -19,5 +19,6 @@
 ## Ethereum related stuff  
   * ethereum types
   * web3 examples
+  * cron job
 
 
