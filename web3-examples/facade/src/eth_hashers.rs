@@ -17,7 +17,7 @@ use fluence::fce;
 use tiny_keccak::{Hasher, Keccak};
 
 #[fce]
-pub fn eth_hash_method(input: Vec<u8>) -> Vec<u8> {
+pub fn eth_hash_method_id(input: Vec<u8>) -> Vec<u8> {
     let mut output = [0u8; 32];
     let mut keccak = Keccak::v256();
 
@@ -27,7 +27,7 @@ pub fn eth_hash_method(input: Vec<u8>) -> Vec<u8> {
 }
 
 #[fce]
-pub fn test_eth_hash_method() -> String {
+pub fn test_eth_hash_method_id() -> String {
     use hex::encode;
 
     // see https://docs.soliditylang.org/en/latest/abi-spec.html#examples

@@ -2,9 +2,9 @@
 
 ## Introduction  
 
-Welcome to Ethdenver Virtual 2021 and the Fluence Hackathon where juicy bounties, extraordinary fame, oodles of fun and herdes of spork marmots await!  And yes, we are hiring !!
+Welcome to Ethdenver Virtual 2021 and the Fluence Hackathon where juicy bounties, extraordinary fame, oodles of fun and hordes of spork marmots await!  And yes, we are hiring !!
 
-Below we annotate the enclosed code to give you a quick start to work with the Fluence stack and Etheereum. If you're new to Fluence, give the ol' [documentation](https://fluence-labs.readme.io/docs) a gander before diving in. Please note that the Fluence stack is under heavy development as is the underlying WASM and WASI 
+Below we annotate the enclosed code to give you a quick start to work with the Fluence stack and Ethereum. If you're new to Fluence, give the ol' [documentation](https://fluence-labs.readme.io/docs) a gander before diving in. Please note that the Fluence stack is under heavy development as is the underlying WASM and WASI 
 
 
 ## Fluence  
@@ -12,44 +12,48 @@ Below we annotate the enclosed code to give you a quick start to work with the F
 
 Applications are faster to build, easier to integrate, and more secure due to the enhanced composability. Business logic is incorporated into data packets orchestrating the execution of distributed components. Just as code collaboration creates better products, composition via network protocol enables live apps to be forked, expanded, or re-arranged into new and enhanced user experiences.
 
-
-## Setting up your environment  
-Setup your [Rust](https://www.rust-lang.org/tools/install) and [Fluence enviornment](https://fluence-labs.readme.io/docs/how-to-develop-a-module).
-
+let's get started.  
 ## Quickstart
-If you haven't had a chance to work through the [greeting example](https://fluence-labs.readme.io/docs/how-to-develop-a-module), this might be a good time. For additional examples, check out the [fce](https://github.com/fluencelabs/fce/tree/master/examples) repo, [fleunt pad](https://github.com/fluencelabs/fluent-pad), and the [aqua demo](https://github.com/fluencelabs/aqua-demo).  
+If you haven't had a chance to work through the [greeting example](https://fluence-labs.readme.io/docs/how-to-develop-a-module), this might be a good time. For additional examples, check out the [fce](https://github.com/fluencelabs/fce/tree/master/examples) repo, [fluent pad](https://github.com/fluencelabs/fluent-pad), and the [aqua demo](https://github.com/fluencelabs/aqua-demo).  
 
-## Getting Started With Web3 Services
-We illustrate the core concepts of service development with a few Ethereum JSON-RPC calls. In a nutshell, FCE compliant services are written and compiled with `fce build`. The resulting wasm modules can then be locally inspected and executed with `fce-repl`. 
-
-
-#### Project Structure  
-Facade,....
-
-The fce builder automatically creates a facade slot if not specified.  
- 
-
+Setup your [Rust](https://www.rust-lang.org/tools/install) and [Fluence environment](https://fluence-labs.readme.io/docs/how-to-develop-a-module).
 
 Clone this repo to your machine or instance:
 
+TODO: need final repo and urls.
 ```bash
 git clone 
 ```
+
 and build the 
 
 ```
-cd .../
+cd  ....
 ./build.sh
 ```
 if you get a permission error, `chmod +x build.sh`  
 
-Recall from the [documentation] that a service is comprised of one or more service types: facade, ???, and ???. 
+Recall from the [documentation](https://fluence-labs.readme.io/docs/services-development) that a service is comprised of one or more modules, facade, effector and pure module(s). 
 Looking over the project structure we have the facade and several other ...  
 
+### Getting Started With Fluence and Web3 Services  
+
+[WASM](https://developer.mozilla.org/en-US/docs/WebAssembly) is a relatively new concept and WASM for backend services is even newer, e.g., [wasmer](https://github.com/wasmerio/wasmer), [WASI](https://github.com/CraneStation/wasi), and progressing at a rapid clip. Yet, there are still limitations we need to be aware of. For example, sock support and async capabilities are currently not available but should be soon. Not to worry, we can work with and around those constraints and still build effective solutions.  
+
+For the the time being, our go-to transport comes courtesy of [curl](https://curl.se/docs/) as a service. Please note that curl generally does not provide web socket (ws, wss) capabilities, https is our transport tool of choice. This has a few implications especially with blockchain client access as a service, e.g., a subset of the Ethereum JSON RPC calls in [Infura](https://infura.io/docs/ethereum/wss/introduction), for example, are only accessible via wss, although [Alchemy](https://www.alchemyapi.io/) offers an alternative.
+
+In addition, async is currently not quite there but the Fluence team has implemented a cron-based work-around to allow polling. See below, TODO need document link, for mor einfo.
+
+In the web3-examples folder, we illustrate the core concepts of Web3 service development with a few Ethereum JSON-RPC calls. In a nutshell, FCE compliant services are written and compiled with `fce build`. The resulting wasm modules can then be locally inspected and executed with `fce-repl`.
+
+### A Simple Example
+TBD
 
 
+
+### Developer Notes
 #### A Note On Testing  
-Due to limitations in WASI for another few months, unit tests are not working for #[fce] marked functions when an external binary is imported.  
+Due to limitations in WASI for another few months, unit tests are not working for #[fce] marked functions when an external binary, such as curl, is imported. A workaround is to   
 
 fce-repl examples from `eth_calls_test.rs`:
 
