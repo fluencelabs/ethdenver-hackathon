@@ -42,10 +42,7 @@ pub fn eth_get_balance(url: String, account: String, block_number: String) -> Js
     }
 
     let params: Vec<String> = vec![account, block_identifier];
-    // let json_rpc_args = Request::new(method, params, id).as_sys_string(&url);
-    // let curl_args = format!("-X POST --data '{}' {}", json_rpc_args, url);
     let curl_args: String = Request::new(method, params, id).as_sys_string(&url);
-
     let response: String = unsafe { curl_request(curl_args) };
 
     check_response_string(response, &id)
@@ -57,23 +54,9 @@ pub fn eth_get_block_height(url: String) -> JsonRpcResult {
     let params: Vec<String> = Vec::new();
     let id = get_nonce();
 
-    // let json_rpc_args = Request::new(method, params, id).as_sys_string(&url);
-    // let curl_args = format!("-X POST --data '{}' {}", json_rpc_args, url);
     let curl_args: String = Request::new(method, params, id).as_sys_string(&url);
 
     let response: String = unsafe { curl_request(curl_args) };
 
-    /*
-    if response.len() == 0 {
-        let err_msg = "{\"jsonrpc\":\"2.0\",\"id\":$ID,\"error\":{\"code\":-32700,\"message\":Curl connection failed}}";
-        let err_msg = str::replace(err_msg, "$ID", &id.to_string());
-        return JsonRpcResult::from(Result::from(Err(err_msg)));
-    }
-
-    match response.contains("error") {
-        true => JsonRpcResult::from(Result::from(Err(response))),
-        false => JsonRpcResult::from(Result::from(Ok(response))),
-    }
-    */
     check_response_string(response, &id)
 }

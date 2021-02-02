@@ -79,7 +79,6 @@ pub fn eth_type_test() {
         ];
 
         for (number, expected) in tests {
-            println!("number: {}", number);
             assert_eq!(
                 format!("{:?}", expected),
                 ser::to_string_pretty(&number).unwrap()

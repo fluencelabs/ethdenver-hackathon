@@ -192,7 +192,7 @@ result: Object({"error": String(""), "test_passed": Number(1)})
 4>
 ```  
 
-A small, self-contained service, for example, could generate method id and topics generation. See [Solidity reference](https://docs.soliditylang.org/en/latest/abi-spec.html). A simple method generation may look like so:
+A small, self-contained service, for example, could generate method id and topics generation. See [Solidity reference](https://docs.soliditylang.org/en/latest/abi-spec.html). A simple method id generator may look like so:
 
 ```rust
 #[fce]

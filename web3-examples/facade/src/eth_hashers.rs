@@ -39,6 +39,5 @@ pub fn test_eth_hash_method_id() -> String {
     if res == expected {
         return "test passed".to_string();
     }
-    println!("result: {}, expected: {}", res, expected);
     "test failed".to_string()
 }

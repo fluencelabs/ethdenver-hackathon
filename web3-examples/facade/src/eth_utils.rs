@@ -11,7 +11,6 @@ pub fn get_nonce() -> u64 {
 pub fn check_response_string(response: String, id: &u64) -> JsonRpcResult {
     if response.len() == 0 {
         let err_msg = "{\"jsonrpc\":\"$V\",\"id\":$ID,\"error\":{\"code\":-32700,\"message\":Curl connection failed}}";
-        // let err_msg = replace(err_msg, "$ID", &id.to_string());
         let err_msg = err_msg.replace("$ID", &id.to_string());
         return JsonRpcResult::from(Result::from(Err(err_msg)));
     }

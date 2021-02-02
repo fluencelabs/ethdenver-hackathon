@@ -74,7 +74,6 @@ pub fn new_pending_tx_filter(url: String) -> String {
     let response: String = unsafe { curl_request(curl_args) };
 
     let result_obj: Value = serde_json::from_str(&response).unwrap();
-    println!("result: {:?}", result_obj);
     let result: String = serde_json::from_value(result_obj["result"].clone()).unwrap();
     result
 }
