@@ -33,8 +33,7 @@ cd  ....
 ```
 if you get a permission error, `chmod +x build.sh`  
 
-Recall from the [documentation](https://fluence-labs.readme.io/docs/services-development) that a service is comprised of one or more modules, facade, effector and pure module(s). 
-Looking over the project structure we have the facade and several other ...  
+Recall from the [documentation](https://fluence-labs.readme.io/docs/services-development) that a service is comprised of one or more modules, for the purposes of a quick demo, we are working with a "fat" services, i.e., one services with multiple modules. For all intents and purposes, this is not advisable but helpful for keeping things tight for this overview.  
 
 ### Getting Started With Fluence and Web3 Services  
 
@@ -88,14 +87,13 @@ pub fn eth_get_balance(url: String, account: String, block_number: String) -> Js
 pub static NONCE_COUNTER: AtomicUsize = AtomicUsize::new(1);
 ```
 
-4. We handle out block_number tag to makes sure it's either a valid (positive) number or one of ["latest", "pending", "earliest"]. Note that many of the node-as-a-service providers do not provide historical data without users signing up for archive services. 
+4. We handle our block_number tag to makes sure it's either a valid (positive) number or one of ["latest", "pending", "earliest"]. Note that some of the node-as-a-service providers do not provide historical data without users signing up for archive services. 
 5. Now we format our params and args into a json-rpc suitable for curl
 6.  We finally check our response and return the result
 
 We can now run that function in the fce-repl:
 ```bash
 2> call facade eth_get_balance  ["https://eth-mainnet.alchemyapi.io/v2/<your key>", "0x0000000000000000000000000000000000000000", "latest"]
-timestamp: 1612167486365
 curl args: -X POST --data '{"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":2}' https://eth-mainnet.alchemyapi.io/v2/<your key>
 INFO: Running "/usr/bin/curl -X POST --data {"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":2} https://eth-mainnet.alchemyapi.io/v2/<your key>" ...
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -106,7 +104,7 @@ result: Object({"error": String(""), "id": Number(2), "jsonrpc": String("2.0"), 
 
 3>
 ```
-Note that for the purpose of the examples, we return the raw result(s), which are usually hex strings. A due to the Result type, you need to explicitly check the error string before processing the result:
+Note that for the purpose of the examples, we return the raw result(s), which are usually hex strings; due to the Result limitations, you need to explicitly check the error string before processing the result:
 
 ```rust
     // <snip>
@@ -119,7 +117,6 @@ Note that for the purpose of the examples, we return the raw result(s), which ar
         _ => println!("do something with err")
     }
 ```
-
 
 #### A Note On Testing  
 Due to limitations in WASI for another few months, Rust unit tests proper are not working for fce modules when an external binary, such as curl, is imported. A workaround is to implement test methods in fce and run them in fce-repl. The examples below are based on eth_getBalance discussed above. 
@@ -168,7 +165,7 @@ fn test_eth_get_balance_bad(url: String) -> TestResult {
 }
 ```
 
-Here we test eth_get_balance with the burn account 0x0000000000000000000000000000000000000000 for the the latest block and return the result as TestResult (see eth_utils.rs). Running the functions in fce-repl:
+Here we test eth_get_balance with the burn account "0x0000000000000000000000000000000000000000" for the the latest block and return the result as TestResult (see eth_utils.rs). Running the functions in fce-repl:
 
 ```bash
 2> call facade test_eth_get_balance_bad  ["https://eth-mainnet.alchemyapi.io/v2/<your key>"]
@@ -229,7 +226,7 @@ pub fn test_eth_hash_method_id() -> String {
 }
 ```
 
-and fce-repl execution:
+and corresponding fce-repl execution:
 
 ```bash
 4> call facade test_eth_hash_method []
@@ -260,44 +257,118 @@ pub fn as_sys_string(&self, url: String, max_time:u32) -> String {
     }
 ```  
 
-#### Persistence  
-We currently ... which, due to it's single thread model, ...
+You can inspect all interfaces with the repl tool, e.g.:
 
-There are different ways to handle this depending on your needs. For example, let's say you want to persist account balances from `eth_get_balance` into an external database accessible with HTTPS. You could then write a wrapper around `eth_get_balance` like so:
+```
+mbp16~/localdev/lw3d/web3-examples(main|✚4…) % fce-repl Config.toml
+Welcome to the Fluence FaaS REPL
+app service's created with service id = 06acbe9e-f598-4e34-98d0-1d71117450ce
+elapsed time 138.917556ms
 
-```rust
-#[fce]
-pub fn acco$$unt_balance_to_db(account: String, provider_url:String, db_url:String ) - SomeResultImpl {
-    let result = eth_get_balance(account.clone(), provider_url);
-    if result.error.len() >0 {
-        return Err(result.error);
-    }
+1> interface
+Application service interface:
+TestResult {
+  test_passed: I32
+  error: String
+}
+JsonRpcResult {
+  jsonrpc: String
+  result: String
+  error: String
+  id: U64
+}
 
-    // extract balance from json string, e.g.
-    let obj = serde_json::from_value(result);
-    let hex_balance = obj["result"];
-    let eth_balance:u128 = u128::from_str_radix(&hex_balance[2..], 16).unwrap() / 1_000_000_000 * 1_000_000_000;
-    ...
-    let mariadb_insert = format!("insert into table {} (account, balance, Utc_timestamp) values ({},{},{})", account, eth_balance, chrono::Utc::now().timestamp_millis());
+facade:
+  fn test_drop_outliers_and_average()
+  fn get_filter_changes(url: String, filter_id: String) -> String
+  fn uninstall_filter(url: String, filter_id: String) -> I32
+  fn eth_hash_method_id(input: Array<U8>) -> Array<U8>
+  fn test_eth_get_tx_by_hash(url: String, tx_hash: String)
+  fn test_simple_average()
+  fn eth_get_tx_by_hash(url: String, tx_hash: String) -> String
+  fn test_pending_with_null_filter(url: String) -> String
+  fn simple_average(data: Array<String>) -> String
+  fn test_eth_hash_method_id() -> String
+  fn new_pending_tx_filter(url: String) -> String
+  fn test_eth_get_balance_good(url: String) -> TestResult
+  fn sum_data(data: Array<String>) -> String
+  fn eth_get_balance(url: String, account: String, block_number: String) -> JsonRpcResult
+  fn test_filters(url: String) -> TestResult
+  fn eth_get_block_height(url: String) -> JsonRpcResult
+  fn test_eth_get_balance_bad(url: String) -> TestResult
+  fn drop_outliers_and_average(data: Array<String>) -> String
 
-    let curl_args = "-X POST ... ";
-    let response = unsafe ( curl_request(curl_args));
-    ...
+curl_adapter:
+  fn curl_request(url: String) -> String
 
-}   
+```
+
+### Deploying our Services  
+The next step is to upload our work to the Fluence network. First, we need some tooling:
+```bash
+npm i fldist -g
+``` 
+This installs the Fluence [proto distributor](https://github.com/fluencelabs/proto-distributor), which makes deploying our service(s) quite easy. It also includes some magic to get your services to the right test network node(s). You may recall the steps to deploy our service from the [documentation](https://fluence-labs.readme.io/docs/service-lifecycle):
+1. Upload the module(s)
+2. Create the blueprint(s)
+3. Create the service(s)
+
+Since our project is structured as a "fat" service, we have two modules, see your artifacts directory, and one service. Let's get busy and upload our modules:
+
+```bash 
+mbp16~/localdev/lw3d/web3-examples(main|✚3…) % fldist upload -n web3_test_curl_1  -p artifacts/curl_adapter.wasm
+seed: 911tQW1TWUXGY4TytZfmrpewFHQLc4AzbYUtWQ8oWaYV
+uploading module web3_test_curl_1 to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWC3Km9YRA71bCSjd526gu8BXqw7uX87hvRjAwsGpsqtcS
+
+mbp16~/localdev/lw3d/web3-examples(main|✚3…) % fldist upload -n web3_test_functions  -p artifacts/facade.wasm
+seed: DiRwpKx2M8wXD2KPnDDfNPKwN1WjvyEYHUAp3yvuy51N
+uploading module web3_test_functions to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3Ko
+``` 
+
+Here we uploaded both modules to the test network and you need to make sure your module names are unique. That is, don't use
+<i>web3_test_curl_1</i> and <i>web3_test_functions</i> but come up with your own names. You can use `fldist get_modules` to get a list of all modules, and their respective names, on a node.
+
+Now we need to deploy our blueprint. Let's design one first:
+```
+blueprint:
+```json
+{
+     "id": "uuid-dc0b258-65f0-11eb-bf24-acde48001122",
+     "name": "eth_test_1",
+     "dependencies": [ "curl_adapter", "facade"]
+}
 ```  
+The blueprint id is a UUID that you need to enerate . Don't reuse the one in the examples. We give our service-to-be a name and finally, we associate the necessary modules in depdencies. That's it. Of course, we need a blueprint for each servie we want to deploy. To deploy a blueprint, we:
+```bash
+mbp16~/localdev/lw3d/web3-examples(main|✚3…) % fldist add_blueprint -i uuid-dc0b258-65f0-11eb-bf24-acde48001122 -d [ web3_test_curl_1, web3_test_functions] -n eth_test_fat_service_1 -s 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QWrar
+uploading blueprint eth_test_fat_service_1 to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWSkpw3d4udWoQqQZsY5BpY7aqprQXwMKYgbNhSDfMbsxw
+```  
+We use the `fldist add_blueprint` command and add your blueprint id with the -i flag, the name with -n flag, and the dependecies with the -d flag. So what's the -s flag? It's our client seed which is our gateway to [security](https://fluence-labs.readme.io/docs/security-model). Fundamentally, the client seed is created as a base58 encoding of your ED25119 secret key. If you don't have a keypair, you can use <i>fldist</i> to create one:
 
-If you are using the  from a front end application, then the ususal loca or remote process doesn't need to change. 
+```bash
+mbp16~(:|✔) % fldist create_keypair
+{
+  id: '12D3KooWKW51pN9M5xx9aBiLXm9VnZryoj6poj1e8AycVYiiPzBh',
+  privKey: 'CAESYHwBglTBz5A4SaNXYVt8CrpYos8y3vEqU6gm6MympmUMj+UEygty3m6HJE/fM1hP1qe1l82s9k3w9uKTXLqyY9CP5QTKC3LebockT98zWE/Wp7WXzaz2TfD24pNcurJj0A==',
+  pubKey: 'CAESII/lBMoLct5uhyRP3zNYT9antZfNrPZN8Pbik1y6smPQ',
+  seed: '9M4taDKCDsJnjcmjHV8RuuW4Zj3fBU1MmKK1cKbwVUhq'
+}
+```
+where seed feeds the -s flag. Make sure you safely retain this info. 
+
+Before we proceed, make sure your grab the client reference.e.g., 12D3KooWSkpw3d4udWoQqQZsY5BpY7aqprQXwMKYgbNhSDfMbsxw. Now we have our modules and blueprints on the network and can instantiate our service:
+```bash
+mbp16~/localdev/lw3d/web3-examples(main|✚3…) % fldist create_service -i uuid-dc0b258-65f0-11eb-bf24-acde48001122 -s 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QWrar
+service id: [object Promise]
+service created successfully
+creating service uuid-dc0b258-65f0-11eb-bf24-acde48001122
+```
+This gives your services id.  
+
+Now we are all dressed up and need somehwere to go !!
+
+### Frontend
+Coming soon.
 
 
-#### Composition 
-Composition is a salient feature of the Fluence stack and entails the creation of [particles](). Please note that currently, services can <b>not</b> create particles. That is, all composition efforts need to be managed through front end applications.
 
-
-
-
-
-
-
-
-## Contribution Guidelines  
