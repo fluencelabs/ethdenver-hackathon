@@ -15,8 +15,7 @@
  */
 
 use crate::curl_request;
-use crate::eth_utils::get_nonce;
-use crate::eth_utils::{check_response_string, BLOCK_NUMBER_TAGS};
+use crate::eth_utils::{check_response_string, get_nonce, BLOCK_NUMBER_TAGS};
 use crate::fce_results::JsonRpcResult;
 use crate::jsonrpc_helpers::Request;
 use chrono::Utc;
@@ -44,7 +43,6 @@ pub fn eth_get_balance(url: String, account: String, block_number: String) -> Js
     let params: Vec<String> = vec![account, block_identifier];
     let curl_args: String = Request::new(method, params, id).as_sys_string(&url);
     let response: String = unsafe { curl_request(curl_args) };
-
     check_response_string(response, &id)
 }
 
@@ -55,8 +53,17 @@ pub fn eth_get_block_height(url: String) -> JsonRpcResult {
     let id = get_nonce();
 
     let curl_args: String = Request::new(method, params, id).as_sys_string(&url);
-
     let response: String = unsafe { curl_request(curl_args) };
-
     check_response_string(response, &id)
+}
+
+#[fce]
+pub fn eth_get_tx_by_hash(url: String, tx_hash: String) -> String {
+    let method: String = String::from("eth_getTransactionByHash");
+    let params: Vec<String> = vec![tx_hash];
+    let id = get_nonce();
+
+    let curl_args: String = Request::new(method, params, id).as_sys_string(&url);
+    let response: String = unsafe { curl_request(curl_args) };
+    response
 }

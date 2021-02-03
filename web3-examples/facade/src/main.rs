@@ -17,6 +17,7 @@
 use fluence::fce;
 use fluence::WasmLoggerBuilder;
 
+mod data_processing;
 mod eth_calls;
 mod eth_calls_tests;
 mod eth_filter_test;
@@ -29,7 +30,7 @@ mod jsonrpc_helpers;
 pub(crate) type Result<T> = std::result::Result<T, T>;
 
 pub fn main() {
-    WasmLoggerBuilder::new().build().unwrap();
+    // WasmLoggerBuilder::new().build().unwrap();
 }
 
 #[fce]

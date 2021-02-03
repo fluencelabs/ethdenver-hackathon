@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-use crate::eth_calls::eth_get_balance;
+use crate::eth_calls::{eth_get_balance, eth_get_tx_by_hash};
 use crate::eth_filters::{get_filter_changes, new_pending_tx_filter, uninstall_filter};
 use crate::eth_utils::wei_to_eth;
 use crate::fce_results::TestResult;
@@ -60,4 +60,16 @@ fn test_eth_get_balance_bad(url: String) -> TestResult {
     }
     let err_msg = format!("expected: gt {}, actual {:.2}", 1_000_000, eth_balance);
     TestResult::from(Result::from(Err(err_msg)))
+}
+
+#[fce]
+fn test_eth_get_tx_by_hash(url: String, tx_hash: String) {
+    let res: String = eth_get_tx_by_hash(url, tx_hash.clone());
+    let obj: serde_json::Value = serde_json::from_str(&res).unwrap();
+    println!(
+        "expected: {} == {} actual : {}",
+        tx_hash,
+        obj["result"]["hash"],
+        tx_hash == obj["result"]["hash"]
+    );
 }

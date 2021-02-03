@@ -35,7 +35,7 @@ impl Request {
     }
 
     pub fn as_sys_string(&self, url: &String) -> String {
-        let result = format!("-X POST --data '{{\"jsonrpc\":\"{}\", \"method\": \"{}\", \"params\":{:?}, \"id\":{}}}' {}", self.jsonrpc, self.method, self.params, self.id, url);
+        let result = format!("-s -X POST --data '{{\"jsonrpc\":\"{}\", \"method\": \"{}\", \"params\":{:?}, \"id\":{}}}' {}", self.jsonrpc, self.method, self.params, self.id, url);
         result
     }
 }

@@ -33,7 +33,7 @@ pub fn test_eth_hash_method_id() -> String {
     // see https://docs.soliditylang.org/en/latest/abi-spec.html#examples
     let input = b"baz(uint32,bool)".to_vec();
     let expected = String::from("cdcd77c0");
-    let res = eth_hash_method(input);
+    let res = eth_hash_method_id(input);
     let res = format!("{}", hex::encode(&res[..4]));
 
     if res == expected {
