@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 use crate::curl_request;
-use crate::eth_utils::check_response_string;
-use crate::eth_utils::get_nonce;
+use crate::eth_utils::{check_response_string, get_nonce};
+use crate::eth_calls::eth_get_tx_by_hash;
 use crate::fce_results::JsonRpcResult;
 use crate::jsonrpc_helpers::Request;
 use crate::jsonrpc_helpers::JSON_RPC;
@@ -91,4 +91,42 @@ pub fn get_filter_changes(url: String, filter_id: String) -> String {
 
     let response: String = unsafe { curl_request(curl_args) };
     response
+}
+
+#[fce]
+pub fn get_filter_changes_without_null(url: String, filter_id: String) -> String {
+    let mut matches: Vec<(String, String, String, String)> = Vec::new();
+
+    let result: String = get_filter_changes(url.clone(), filter_id.clone());
+    let results: serde_json::Value = serde_json::from_str(&result).unwrap();
+    let results: Vec<String> = serde_json::from_value(results["result"].clone()).unwrap();
+    for tx_hash in results.iter() {
+        let tx: String = eth_get_tx_by_hash(url.clone(), tx_hash.clone());
+        let tx: serde_json::Value = serde_json::from_str(&tx).unwrap();
+        if tx["result"] != serde_json::Value::Null {
+            let from_acct = serde_json::from_value(tx["result"]["from"].clone());
+            let from_acct: String = if from_acct.is_ok() {
+                from_acct.unwrap()
+            } else {
+                String::from("")
+            };
+
+            let to_acct = serde_json::from_value(tx["result"]["to"].clone());
+            let to_acct: String = if to_acct.is_ok() {
+                to_acct.unwrap()
+            } else {
+                String::from("")
+            };
+
+            let value = serde_json::from_value(tx["result"]["value"].clone());
+            let value: String = if value.is_ok() {
+                value.unwrap()
+            } else {
+                String::from("")
+            };
+            matches.push((tx_hash.clone(), from_acct, to_acct, value));
+        }
+    }
+
+    serde_json::to_string(&matches).unwrap()
 }
