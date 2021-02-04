@@ -15,7 +15,7 @@
  */
 use crate::curl_request;
 use crate::eth_utils::{check_response_string, get_nonce};
-use crate::eth_calls::eth_get_tx_by_hash;
+use crate::eth_calls::{eth_get_tx_by_hash, Tx, eth_get_txs_by_hashes};
 use crate::fce_results::JsonRpcResult;
 use crate::jsonrpc_helpers::Request;
 use crate::jsonrpc_helpers::JSON_RPC;
@@ -125,87 +125,10 @@ pub fn get_filter_changes_list(url: String, filter_id: String) -> Vec<String> {
     }
 }
 
-#[derive(serde::Deserialize)]
-pub struct TxSerde {
-    // blockHash: DATA, 32 Bytes - hash of the block where this transaction was in. null when its pending.
-    pub blockHash: Option<String>,
-    // blockNumber: QUANTITY - block number where this transaction was in. null when its pending.
-    pub blockNumber: Option<String>,
-    // from: DATA, 20 Bytes - address of the sender.
-    pub from: Option<String>,
-    // gas: QUANTITY - gas provided by the sender.
-    pub gas: Option<String>,
-    // gasPrice: QUANTITY - gas price provided by the sender in Wei.
-    pub gasPrice: Option<String>,
-    // hash: DATA, 32 Bytes - hash of the transaction.
-    pub hash: Option<String>,
-    // input: DATA - the data send along with the transaction.
-    pub input: Option<String>,
-    // nonce: QUANTITY - the number of transactions made by the sender prior to this one.
-    pub nonce: Option<String>,
-    // to: DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
-    pub to: Option<String>,
-    // transactionIndex: QUANTITY - integer of the transactions index position in the block. null when its pending.
-    pub transactionIndex: Option<String>,
-    // value: QUANTITY - value transferred in Wei.
-    pub value: Option<String>,
-}
-
-#[derive(serde::Deserialize)]
-struct GetTxResponse {
-    result: TxSerde
-}
-
 #[fce]
-pub struct Tx {
-    pub blockHash: String,
-    pub blockNumber: String,
-    pub from: String,
-    pub gas: String,
-    pub gasPrice: String,
-    pub hash: String,
-    pub input: String,
-    pub nonce: String,
-    pub to: String,
-    pub transactionIndex: String,
-    pub value: String,
-}
-
-impl From<TxSerde> for Tx {
-    fn from(ser: TxSerde) -> Self {
-        Self {
-            blockHash: ser.blockHash.unwrap_or_default(),
-            blockNumber: ser.blockNumber.unwrap_or_default(),
-            from: ser.from.unwrap_or_default(),
-            gas: ser.gas.unwrap_or_default(),
-            gasPrice: ser.gasPrice.unwrap_or_default(),
-            hash: ser.hash.unwrap_or_default(),
-            input: ser.input.unwrap_or_default(),
-            nonce: ser.nonce.unwrap_or_default(),
-            to: ser.to.unwrap_or_default(),
-            transactionIndex: ser.transactionIndex.unwrap_or_default(),
-            value: ser.value.unwrap_or_default()
-        }
-    }
-}
-
-#[fce]
-pub fn get_filter_changes_without_null(url: String, filter_id: String) -> Vec<Tx> {
+pub fn get_filter_changes_without_null(url: String, filter_id: String, limit: String) -> Vec<Tx> {
     let tx_hashes = get_filter_changes_list(url.clone(), filter_id.clone());
-
-    let get_tx = |hash: String| -> Option<Tx> {
-        let r = eth_get_tx_by_hash(url.clone(), hash);
-        let r = serde_json::from_str::<GetTxResponse>(r.as_str());
-        match r {
-            Ok(r) => Some(r.result.into()),
-            Err(e) => {
-                log::error!("Error while deserializing GetTxResponse: {}", e);
-                None
-            }
-        }
-    };
-
-    let txes: Vec<_> = tx_hashes.into_iter().flat_map(|hash| get_tx(hash)).collect();
-
-    txes
+    let limit: usize = limit.parse().unwrap_or(5000);
+    let tx_hashes = tx_hashes.into_iter().take(limit as usize).collect();
+    eth_get_txs_by_hashes(url, tx_hashes)
 }
