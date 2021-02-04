@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#![allow(non_snake_case, unused_variables, unused_imports, unused_parens, unused_mut)]
+
 use fluence::fce;
 use fluence::WasmLoggerBuilder;
 

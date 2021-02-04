@@ -94,39 +94,69 @@ pub fn get_filter_changes(url: String, filter_id: String) -> String {
 }
 
 #[fce]
-pub fn get_filter_changes_without_null(url: String, filter_id: String) -> String {
-    let mut matches: Vec<(String, String, String, String)> = Vec::new();
+pub fn get_filter_changes_list(url: String, filter_id: String) -> Vec<String> {
+    let method = String::from("eth_getFilterChanges");
+    let params: Vec<String> = vec![filter_id];
+    let id = get_nonce();
 
-    let result: String = get_filter_changes(url.clone(), filter_id.clone());
-    let results: serde_json::Value = serde_json::from_str(&result).unwrap();
-    let results: Vec<String> = serde_json::from_value(results["result"].clone()).unwrap();
-    for tx_hash in results.iter() {
-        let tx: String = eth_get_tx_by_hash(url.clone(), tx_hash.clone());
-        let tx: serde_json::Value = serde_json::from_str(&tx).unwrap();
-        if tx["result"] != serde_json::Value::Null {
-            let from_acct = serde_json::from_value(tx["result"]["from"].clone());
-            let from_acct: String = if from_acct.is_ok() {
-                from_acct.unwrap()
-            } else {
-                String::from("")
-            };
+    let curl_args = Request::new(method, params, id).as_sys_string(&url);
 
-            let to_acct = serde_json::from_value(tx["result"]["to"].clone());
-            let to_acct: String = if to_acct.is_ok() {
-                to_acct.unwrap()
-            } else {
-                String::from("")
-            };
-
-            let value = serde_json::from_value(tx["result"]["value"].clone());
-            let value: String = if value.is_ok() {
-                value.unwrap()
-            } else {
-                String::from("")
-            };
-            matches.push((tx_hash.clone(), from_acct, to_acct, value));
-        }
+    let response = unsafe { curl_request(curl_args) };
+    let mut response: Value = serde_json::from_str(&response).expect("failed to parse ETH RPC response as json");
+    let result = response.get_mut("result").expect("no 'result' field found in ETH RPC response");
+    if let Value::Array(results) = result.take() {
+        results.into_iter().flat_map(|r| {
+            let hash = r.get("transactionHash")?.as_str()?;
+            Some(hash.to_string())
+        }).collect()
+    } else {
+        panic!("expected result to be an array. it wasn't.")
     }
+}
 
-    serde_json::to_string(&matches).unwrap()
+#[fce]
+#[derive(serde::Deserialize)]
+pub struct Tx {
+    // blockHash: DATA, 32 Bytes - hash of the block where this transaction was in. null when its pending.
+    pub blockHash: String,
+    // blockNumber: QUANTITY - block number where this transaction was in. null when its pending.
+    pub blockNumber: String,
+    // from: DATA, 20 Bytes - address of the sender.
+    pub from: String,
+    // gas: QUANTITY - gas provided by the sender.
+    pub gas: String,
+    // gasPrice: QUANTITY - gas price provided by the sender in Wei.
+    pub gasPrice: String,
+    // hash: DATA, 32 Bytes - hash of the transaction.
+    pub hash: String,
+    // input: DATA - the data send along with the transaction.
+    pub input: String,
+    // nonce: QUANTITY - the number of transactions made by the sender prior to this one.
+    pub nonce: String,
+    // to: DATA, 20 Bytes - address of the receiver. null when its a contract creation transaction.
+    pub to: String,
+    // transactionIndex: QUANTITY - integer of the transactions index position in the block. null when its pending.
+    pub transactionIndex: String,
+    // value: QUANTITY - value transferred in Wei.
+    pub value: String,
+}
+
+#[derive(serde::Deserialize)]
+struct GetTxResponse {
+    result: Tx
+}
+
+#[fce]
+pub fn get_filter_changes_without_null(url: String, filter_id: String) -> Vec<Tx> {
+    let tx_hashes = get_filter_changes_list(url.clone(), filter_id.clone());
+
+    let get_tx = |hash: String| -> Option<Tx> {
+        let r = eth_get_tx_by_hash(url.clone(), hash);
+        let r: GetTxResponse = serde_json::from_str(r.as_str()).ok()?;
+        Some(r.result)
+    };
+
+    let txes: Vec<_> = tx_hashes.into_iter().flat_map(|hash| get_tx(hash)).collect();
+
+    txes
 }
