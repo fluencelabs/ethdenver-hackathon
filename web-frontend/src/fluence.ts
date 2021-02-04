@@ -7,7 +7,7 @@ export const relayNode = dev[2];
 
 const node = dev[2].peerId;
 
-const serviceId = 'd0d5c2aa-e274-4eb2-97ed-b92f33299b07';
+const serviceId = '32e04ccf-1370-4ec8-b7ec-aaabbde2fc8b';
 const bluePrintId = 'uuid-dc0b258-65f0-11eb-bf24-acde48001122';
 
 export const getInterface = async (client: FluenceClient) => {
@@ -52,7 +52,8 @@ type Method =
     | 'simple_average'
     | 'test_eth_get_tx_by_hash'
     | 'eth_get_block_height'
-    | 'get_filter_changes';
+    | 'get_filter_changes'
+    | 'get_filter_changes_without_null';
 
 const callEthService = async <T>(client: FluenceClient, method: Method, args: any[], ttl: number) => {
     const argsNames = args.map((val, index) => `arg${index}`).join(' ');
@@ -95,6 +96,16 @@ export const getFilterChanges = async (
 ): Promise<Array<string>> => {
     const [res] = await callEthService<[string]>(client, 'get_filter_changes', [url, filterId], timeout);
     return JSON.parse(res).result;
+};
+
+export const getFilterChangesWithoutNulls = async (
+    client: FluenceClient,
+    url: string,
+    filterId: string,
+): Promise<Array<TxInfo>> => {
+    const res = await callEthService<[any]>(client, 'get_filter_changes_without_null', [url, filterId], timeout);
+    console.log(res);
+    return res;
 };
 
 export const removeFilter = async (client: FluenceClient, url: string, filterId: string): Promise<boolean> => {

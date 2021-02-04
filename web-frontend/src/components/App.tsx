@@ -1,6 +1,14 @@
 import { createClient, FluenceClient, subscribeToEvent } from '@fluencelabs/fluence';
 import React, { useEffect, useState } from 'react';
-import { createFilter, getFilterChanges, getTxInfo, relayNode, removeFilter, TxInfo } from 'src/fluence';
+import {
+    createFilter,
+    getFilterChanges,
+    getFilterChangesWithoutNulls,
+    getTxInfo,
+    relayNode,
+    removeFilter,
+    TxInfo,
+} from 'src/fluence';
 
 import './App.scss';
 
@@ -13,45 +21,22 @@ const App = () => {
     );
     const [filterId, setFilterId] = useState<string | null>(null);
     const [timer, setTimer] = useState<any>();
-    const [data, setData] = useState<Map<string, any>>(new Map());
-
-    // don't know how to make it
-    const updateTxInfos = (data: Array<string>) => {
-        for (let item of data) {
-            let itemCopy = item;
-            getTxInfo(client!, serviceUrl, item)
-                .then((x) => {
-                    console.log(x);
-                    setData((prev) => {
-                        const result = new Map(prev);
-                        if (x) {
-                            result.set(itemCopy, x);
-                        } else {
-                            result.delete(itemCopy);
-                        }
-                        return result;
-                    });
-                })
-                .catch((err) => {
-                    console.log("couldn't get tx data", err);
-                });
-        }
-    };
+    const [data, setData] = useState<TxInfo[]>([]);
 
     const updateData = async (filterId) => {
         if (!filterId || !client) {
             return;
         }
 
-        const data = await getFilterChanges(client, serviceUrl, filterId);
-        console.log(data);
-        setData((prev) => {
-            const res = new Map(prev);
-            for (let item of data) {
-                res.set(item, 'nothing yet');
-            }
-            return res;
-        });
+        try {
+            const data = await getFilterChangesWithoutNulls(client, serviceUrl, filterId);
+            console.log(data);
+            setData((prev) => {
+                return [...data, ...prev];
+            });
+        } catch (err) {
+            console.log('updateData failed', err);
+        }
     };
 
     useEffect(() => {
@@ -71,10 +56,14 @@ const App = () => {
             return;
         }
 
-        const filterId = await createFilter(client, serviceUrl);
-        setFilterId(filterId);
-        const timer = setInterval(updateData, intervalMs, filterId);
-        setTimer(timer);
+        try {
+            const filterId = await createFilter(client, serviceUrl);
+            setFilterId(filterId);
+            const timer = setInterval(updateData, intervalMs, filterId);
+            setTimer(timer);
+        } catch (err) {
+            console.log('createFilter failed', err);
+        }
     };
 
     const stop = async () => {
@@ -82,12 +71,16 @@ const App = () => {
             return;
         }
 
-        clearInterval(timer);
-        setTimer(null);
+        try {
+            clearInterval(timer);
+            setTimer(null);
 
-        const res = await removeFilter(client, serviceUrl, filterId);
-        console.log(res);
-        setFilterId(null);
+            const res = await removeFilter(client, serviceUrl, filterId);
+            console.log(res);
+            setFilterId(null);
+        } catch (err) {
+            console.log('stop failed', err);
+        }
     };
 
     return (
@@ -103,25 +96,42 @@ const App = () => {
             </div>
             <div className="content">
                 <div>
-                    node:
-                    <input onChange={(e) => setServiceUrl(e.target.value)} type="text" value={serviceUrl} />
+                    <input
+                        className="text-input"
+                        onChange={(e) => setServiceUrl(e.target.value)}
+                        type="text"
+                        value={serviceUrl}
+                    />
                 </div>
-                <div>
-                    <button onClick={start}>start</button>
+                <div className="buttons">
+                    <button className="button" onClick={start}>
+                        start
+                    </button>
+
+                    <button className="button" onClick={stop}>
+                        stop
+                    </button>
                 </div>
-                <div>
-                    <button onClick={stop}>stop</button>
-                </div>
-                <div>count: {Array.from(data).length}</div>
-                <div>
-                    {Array.from(data).map((x) => {
-                        const [hash, data] = x;
-                        return (
-                            <div key={hash}>
-                                {hash} {data}
-                            </div>
-                        );
-                    })}
+
+                <div className="table-wrapper">
+                    <table className="table">
+                        <th>
+                            <td>from</td>
+                            <td>to</td>
+                            <td>gas</td>
+                            <td>gas price</td>
+                            <td>hash</td>
+                        </th>
+                        {data.map((x) => (
+                            <tr key={x.hash}>
+                                <td className="td1">{x.from}</td>
+                                <td className="td2">{x.to}</td>
+                                <td className="td3">{x.gas}</td>
+                                <td className="td4">{x.gasPrice}</td>
+                                <td className="td5">{x.hash}</td>
+                            </tr>
+                        ))}
+                    </table>
                 </div>
             </div>
         </>
