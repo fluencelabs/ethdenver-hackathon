@@ -7,7 +7,7 @@ export const relayNode = dev[2];
 
 const node = dev[2].peerId;
 
-const serviceId = '32e04ccf-1370-4ec8-b7ec-aaabbde2fc8b';
+const serviceId = '8067ab18-1a95-4cd9-b477-a33e3549012f';
 const bluePrintId = 'uuid-dc0b258-65f0-11eb-bf24-acde48001122';
 
 export const getInterface = async (client: FluenceClient) => {
@@ -102,9 +102,9 @@ export const getFilterChangesWithoutNulls = async (
     client: FluenceClient,
     url: string,
     filterId: string,
+    n: string,
 ): Promise<Array<TxInfo>> => {
-    const res = await callEthService<[any]>(client, 'get_filter_changes_without_null', [url, filterId], timeout);
-    console.log(res);
+    const [res] = await callEthService<[any]>(client, 'get_filter_changes_without_null', [url, filterId, n], timeout);
     return res;
 };
 
