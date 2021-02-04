@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#![allow(non_snake_case, unused_variables, unused_imports, unused_parens, unused_mut)]
+
 use fluence::fce;
 use fluence::WasmLoggerBuilder;
 
@@ -30,7 +32,7 @@ mod jsonrpc_helpers;
 pub(crate) type Result<T> = std::result::Result<T, T>;
 
 pub fn main() {
-    // WasmLoggerBuilder::new().build().unwrap();
+    WasmLoggerBuilder::new().build().ok();
 }
 
 #[fce]
