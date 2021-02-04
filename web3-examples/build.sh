@@ -6,6 +6,8 @@
 # fce build --release
 # cd ..
 
+mkdir -p artifacts
+
 cd curl_adapter
 cargo update
 fce build --release
@@ -17,7 +19,6 @@ fce build --release
 cd ..
 
 rm -f artifacts/*
-cp local_storage/target/wasm32-wasi/release/local_storage.wasm artifacts/
 cp curl_adapter/target/wasm32-wasi/release/curl_adapter.wasm artifacts/
 cp facade/target/wasm32-wasi/release/facade.wasm artifacts/
 # cp sqlite/target/wasm32-wasi/release/sqlite_test.wasm artifacts/
