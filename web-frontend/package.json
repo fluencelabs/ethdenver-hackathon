@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@fluencelabs/fluence": "^0.9.15",
+    "@fluencelabs/fluence": "^0.9.17",
     "@fluencelabs/fluence-network-environment": "^1.0.8",
     "@testing-library/jest-dom": "^5.11.6",
     "@testing-library/react": "^11.2.2",
@@ -12,8 +12,6 @@
     "@types/node": "^12.19.9",
     "@types/react": "^16.14.2",
     "@types/react-dom": "^16.9.10",
-    "lodash": "^4.17.20",
-    "lodashnpm": "^1.0.4",
     "node-sass": "^4.14.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
@@ -49,7 +47,5 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {
-    "@types/lodash": "^4.14.167"
-  }
+  "devDependencies": {}
 }

@@ -4,7 +4,6 @@ import './index.scss';
 import App from './components/App';
 import log from 'loglevel';
 
-// log.setLevel('trace');
 log.setLevel('error');
 
 ReactDOM.render(
