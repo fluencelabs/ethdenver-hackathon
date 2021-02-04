@@ -32,7 +32,7 @@ mod jsonrpc_helpers;
 pub(crate) type Result<T> = std::result::Result<T, T>;
 
 pub fn main() {
-    // WasmLoggerBuilder::new().build().unwrap();
+    WasmLoggerBuilder::new().build().ok();
 }
 
 #[fce]
