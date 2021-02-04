@@ -12,7 +12,7 @@ import {
 
 import './App.scss';
 
-const intervalMs = 1000;
+const intervalMs = 4000;
 
 const App = () => {
     const [client, setClient] = useState<FluenceClient | null>(null);
@@ -29,7 +29,7 @@ const App = () => {
         }
 
         try {
-            const data = await getFilterChangesWithoutNulls(client, serviceUrl, filterId);
+            const data = await getFilterChangesWithoutNulls(client, serviceUrl, filterId, '50');
             console.log(data);
             setData((prev) => {
                 return [...data, ...prev];
@@ -78,6 +78,7 @@ const App = () => {
             const res = await removeFilter(client, serviceUrl, filterId);
             console.log(res);
             setFilterId(null);
+            setData([]);
         } catch (err) {
             console.log('stop failed', err);
         }
@@ -115,13 +116,13 @@ const App = () => {
 
                 <div className="table-wrapper">
                     <table className="table">
-                        <th>
-                            <td>from</td>
-                            <td>to</td>
-                            <td>gas</td>
-                            <td>gas price</td>
-                            <td>hash</td>
-                        </th>
+                        <tr>
+                            <th>from</th>
+                            <th>to</th>
+                            <th>gas</th>
+                            <th>gas price</th>
+                            <th>hash</th>
+                        </tr>
                         {data.map((x) => (
                             <tr key={x.hash}>
                                 <td className="td1">{x.from}</td>

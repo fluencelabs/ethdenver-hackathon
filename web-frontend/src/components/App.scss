@@ -52,7 +52,7 @@ body {
 }
 
 .content {
-    width: 1200px;
+    width: 1700px;
     margin-left: auto;
     margin-right: auto;
     padding-top: 50px;
@@ -182,7 +182,11 @@ body {
     box-shadow: $shadow;
 
     & td {
-        @include font(16px);
+        @include font(14px);
         min-width: 100px;
+    }
+
+    & th {
+        @include font(16px);
     }
 }
