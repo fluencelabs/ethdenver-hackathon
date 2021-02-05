@@ -4,8 +4,7 @@
 
 Welcome to Ethdenver Virtual 2021 and the Fluence Hackathon where juicy bounties, extraordinary fame, oodles of fun and hordes of spork marmots await!  And yes, we are hiring !!
 
-Below we annotate the enclosed code to give you a quick start to work with the Fluence stack and Ethereum. If you're new to Fluence, give the ol' [documentation](https://fluence-labs.readme.io/docs) a gander before diving in. Please note that the Fluence stack is under heavy development as is the underlying WASM and WASI 
-
+Below we annotate the enclosed code to give you a quick start to work with the Fluence stack and Ethereum. If you're new to Fluence, give the ol' [documentation](https://fluence-labs.readme.io/docs) a gander before diving in. Please note that the Fluence stack is under heavy development as are the underlying WASM and WASI 
 
 ## Fluence  
 [Fluence](https://fluence.network/) is an open application platform powered by peer-to-peer computing protocol and a decentralized licensing system. Fluence enables developers to host applications in the decentralized network and collaborate on live applications, reusing components and data. The protocol creates an open marketplace of compute capacity, so availability and pricing are not controlled by a single company and instead are driven by competitive market forces.
@@ -14,11 +13,9 @@ Applications are faster to build, easier to integrate, and more secure due to th
 
 let's get started.  
 ## Quickstart
-If you haven't had a chance to work through the [greeting example](https://fluence-labs.readme.io/docs/how-to-develop-a-module), this might be a good time. For additional examples, check out the [fce](https://github.com/fluencelabs/fce/tree/master/examples) repo, [fluent pad](https://github.com/fluencelabs/fluent-pad), and the [aqua demo](https://github.com/fluencelabs/aqua-demo).  
+The point of this tutorial is to get you familiarized with the Fluence stack as quickly as possible in the context of Web3 development. To this end we bootstrap from a few [Ethereum JSON-RPC](https://eth.wiki/json-rpc/API) calls to a stllized frontend and cover all the good stuff along the way. If you haven't had a chance to work through the [greeting example](https://fluence-labs.readme.io/docs/how-to-develop-a-module), this might be a good time. For additional examples, check out the [fce](https://github.com/fluencelabs/fce/tree/master/examples) repo, [fluent pad](https://github.com/fluencelabs/fluent-pad,and the [aqua demo](https://github.com/fluencelabs/aqua-demo).
 
-Setup your [Rust](https://www.rust-lang.org/tools/install) and [Fluence environment](https://fluence-labs.readme.io/docs/how-to-develop-a-module).
-
-Clone this repo to your machine or instance:
+Before we dive in, setup your [Rust](https://www.rust-lang.org/tools/install) and [Fluence environment](https://fluence-labs.readme.io/docs/how-to-develop-a-module) if you haven't done so already. Now clone this repo to your machine or instance:
 
 TODO: need final repo and urls.
 ```bash
@@ -27,35 +24,34 @@ git clone
 
 and build the 
 
-```
+```bash
 cd  ....
 ./build.sh
 ```
-if you get a permission error, `chmod +x build.sh`  
+if you get a permission error, `chmod +x build.sh` and while we're at it, add:
 
-Recall from the [documentation](https://fluence-labs.readme.io/docs/services-development) that a service is comprised of one or more modules, for the purposes of a quick demo, we are working with a "fat" services, i.e., one services with multiple modules. For all intents and purposes, this is not advisable but helpful for keeping things tight for this overview.  
+```bash
+mkdir artifacts
+```
+
+where the artifacts directory serves as a convenient destination for the wasm files we create with the build process.
+
+Recall from the [documentation](https://fluence-labs.readme.io/docs/services-development) that a service is comprised of one or more modules. For for the purposes of a our tutorial, we are working with a "fat" service, i.e., one service with multiple modules. For all intents and purposes, this is not advisable but helpful for keeping things tight for this overview.  
 
 ### Getting Started With Fluence and Web3 Services  
+[WASM](https://developer.mozilla.org/en-US/docs/WebAssembly) is a relatively new concept and WASM for backend services is even newer, e.g., [wasmer](https://github.com/wasmerio/wasmer), [WASI](https://github.com/CraneStation/wasi), and maturing at a rapid clip. Yet, there are still limitations we need to be aware of. For example, sock support and async capabilities are currently not available but should be soon. Not to worry, we can work around those constraints without too much heavy lifting and still build effective solutions.
 
-[WASM](https://developer.mozilla.org/en-US/docs/WebAssembly) is a relatively new concept and WASM for backend services is even newer, e.g., [wasmer](https://github.com/wasmerio/wasmer), [WASI](https://github.com/CraneStation/wasi), and progressing at a rapid clip. Yet, there are still limitations we need to be aware of. For example, sock support and async capabilities are currently not available but should be soon. Not to worry, we can work with and around those constraints and still build effective solutions.  
+For the time being, our go-to transport comes courtesy of [curl](https://curl.se/docs/) as a service. Please note that since curl generally does not provide web socket (ws, wss) capabilities, https is our transport tool of choice. This has a few implications especially when it comes blockchain client access as a service. For example, a subset of the Ethereum JSON RPC calls in [Infura](https://infura.io/docs/ethereum/wss/introduction), are only accessible via wss. However,[Alchemy](https://www.alchemyapi.io/) offers a viable alternative. Using curl generally has no performance penalties and in most cases actually speeds things up but it should be noted that leaving the WASM sandbox comes at a cost: a node provider can easily monitor and exploit curl call data, such as api-keys. If that is a concern, we recommend you run your own node; if it is more of a testnet concern, we recommend using project-specific api-keys, and rotate them periodically.
 
-For the the time being, our go-to transport comes courtesy of [curl](https://curl.se/docs/) as a service. Please note that curl generally does not provide web socket (ws, wss) capabilities, https is our transport tool of choice. This has a few implications especially with blockchain client access as a service, e.g., a subset of the Ethereum JSON RPC calls in [Infura](https://infura.io/docs/ethereum/wss/introduction), for example, are only accessible via wss, although [Alchemy](https://www.alchemyapi.io/) offers an alternative. Using curl generally has no performance penalties and in most cases actually speeds things, it should be noted that leaving the secure wasm sandbox comes at a cost: a node provider can easily monitor and exploit curl call data, such as api-keys. If that is a major, e.g., production, concern, we recommend you run your own node; if it is more of a testnet concern, we recommend using project-specific api-keys, and rotate them periodically. As soon as WASM enables sockets, curl calls can be replace with wasm-native transport(s).
+As mentioned earlier, async is currently not quite there but the Fluence team has implemented a cron-based work-around to allow polling as part of the native node services.
 
-As mentioned earlier, async is currently not quite there but the Fluence team has implemented a cron-based work-around to allow polling. See below, TODO need document link, for more info.
+From a development perspective, a little extra care needs to extended with respect to error management. Specifically, Result<_,_> does not work out of the box in WASI. If you want to return a Result, you need to implement your own. See web3-examples/facade/src/fce_results.rs for examples.
 
-Another limitation that requires a little extra care concerns error management. Specifically, the Result<_,_> does not work in WASI. If you want to return a Result, you need to implement your own.
-See web3-examples/facade/src/fce_results.rs for examples. 
-
-In the web3-examples folder, we illustrate the core concepts of Web3 service development with a few Ethereum JSON-RPC calls. In a nutshell, FCE compliant services are written and compiled with `fce build`. The resulting WASM modules can then be locally inspected and executed with `fce-repl`.
+In the web3-examples folder, we illustrate the core concepts of Web3 service development with a few Ethereum JSON-RPC calls. In a nutshell, FCE compliant services are written and compiled with `fce build`. The resulting WASM modules can then be locally inspected and executed with the Fluence repl, `fce-repl`.
 
 ### A Simple Example
 Let's have a look at one of the examples, eth_get_balance, from `eth_calls_test.rs`:  
 
-```rust
-insert/link to eth_get_balance
-```  
-
-This example is based on the Ethereum JSON RPC [eth_getBalance](https://eth.wiki/json-rpc/API#eth_getbalance) and returns the balance of the named account for the destination chain specified. We implement that method by combining our custom code with the curl service.
 ```rust
 #[fce]
 pub fn eth_get_balance(url: String, account: String, block_number: String) -> JsonRpcResult {
@@ -75,25 +71,27 @@ pub fn eth_get_balance(url: String, account: String, block_number: String) -> Js
     let params: Vec<String> = vec![account, block_identifier];
     let curl_args: String = Request::new(method, params, id).as_sys_string(&url);
     let response: String = unsafe { curl_request(curl_args) };
-
     check_response_string(response, &id)
 }
-```
+```  
+
+This example is based on the Ethereum JSON RPC [eth_getBalance](https://eth.wiki/json-rpc/API#eth_getbalance) and returns the balance of the named account for the destination chain specified. We implement that method by combining our custom code with the curl service. This call should look familiar to most dAPP developers, although web3 libraries abstract over the raw calls. So what's going on ?
+
 1.  We apply the fce macro to the function, which returns our custom JsonRpcResult (see fce_results.rs)
-2.  We specify and the actual method name, which by the way, may deviate from the Ethereum spec's depending on the eth-client provider. See eth_filters.rs for an example.
-3.  We generate our nonce, aka id, which is based on the thread-safe nonce counter implemented in eth_utils.rs:
+2.  We specify the actual method name, which by the way, may deviate from the Ethereum spec's depending on the eth-client provider. See eth_filters.rs for an example.
+3.  We generate our nonce, aka id, which is based on the thread-safe nonce counter, NONCE_COUNTER, implemented in eth_utils.rs:
 
 ```rust
 pub static NONCE_COUNTER: AtomicUsize = AtomicUsize::new(1);
 ```
 
-4. We handle our block_number tag to makes sure it's either a valid (positive) number or one of ["latest", "pending", "earliest"]. Note that some of the node-as-a-service providers do not provide historical data without users signing up for archive services. 
-5. Now we format our params and args into a json-rpc suitable for curl
+4. We handle our block_number tag to makes sure it's either a valid (positive) number or one of ["latest", "pending", "earliest"] parameter options. Note that some of the node-as-a-service providers do not provide historical data without users signing up for archive services. 
+5. Now we format our params and args into a json-rpc dic suitable for curl consumption. 
 6.  We finally check our response and return the result
 
-We can now run that function in the fce-repl:
+We can now run that function in fce-repl with `fce-repl Config.toml` :
 ```bash
-2> call facade eth_get_balance  ["https://eth-mainnet.alchemyapi.io/v2/<your key>", "0x0000000000000000000000000000000000000000", "latest"]
+1> call facade eth_get_balance  ["https://eth-mainnet.alchemyapi.io/v2/<your key>", "0x0000000000000000000000000000000000000000", "latest"]
 curl args: -X POST --data '{"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":2}' https://eth-mainnet.alchemyapi.io/v2/<your key>
 INFO: Running "/usr/bin/curl -X POST --data {"jsonrpc":"2.0", "method": "eth_getBalance", "params":["0x0000000000000000000000000000000000000000", "latest"], "id":2} https://eth-mainnet.alchemyapi.io/v2/<your key>" ...
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -101,10 +99,12 @@ INFO: Running "/usr/bin/curl -X POST --data {"jsonrpc":"2.0", "method": "eth_get
 100   182  100    62  100   120     83    161 --:--:-- --:--:-- --:--:--   243
 result: Object({"error": String(""), "id": Number(2), "jsonrpc": String("2.0"), "result": String("0x1c804d8c47f4e326821")})
  elapsed time: 756.728025ms
-
-3>
+2>
 ```
-Note that for the purpose of the examples, we return the raw result(s), which are usually hex strings; due to the Result limitations, you need to explicitly check the error string before processing the result:
+
+What's happening ?
+We specify that we want to `call` the `eth_get_balance` function from the `facade` module with our Ethereum node url and `latest` block parameters.
+Note that for the purpose of the examples, we return the raw result(s), which are usually hex strings; due to the Result limitations, you need to explicitly check the error string before processing the result. In a general manner, this entails:
 
 ```rust
     // <snip>
@@ -119,7 +119,7 @@ Note that for the purpose of the examples, we return the raw result(s), which ar
 ```
 
 #### A Note On Testing  
-Due to limitations in WASI for another few months, Rust unit tests proper are not working for fce modules when an external binary, such as curl, is imported. A workaround is to implement test methods in fce and run them in fce-repl. The examples below are based on eth_getBalance discussed above. 
+Due to current limitations in WASI, Rust unit tests proper are not working for fce modules when an external binary, such as curl, is imported. A workaround is to implement test methods in fce and run them in fce-repl. The examples below are based on eth_getBalance discussed above.
 
 ```rust
 #[fce]
@@ -189,7 +189,9 @@ result: Object({"error": String(""), "test_passed": Number(1)})
 4>
 ```  
 
-A small, self-contained service, for example, could generate method id and topics generation. See [Solidity reference](https://docs.soliditylang.org/en/latest/abi-spec.html). A simple method id generator may look like so:
+That's it !!
+
+Let's look at what could be a fine-grained, self-contained service: A service that could generate the method id for solidity functions. See [Solidity reference](https://docs.soliditylang.org/en/latest/abi-spec.html). A simple method id generator may look like so:
 
 ```rust
 #[fce]
@@ -238,24 +240,6 @@ result: String("test passed")
 
 Please note that if this function was part of a module not importing an external service, Rust unit tests can be used.
 
-#### Curl  
---max-time, -m: set the timeout in seconds
-
-```rust
-pub fn as_sys_string(&self, url: String) -> String {
-        let result = format!("-X POST --data '{{\"jsonrpc\":\"{}\", \"method\": \"{}\", \"params\":{:?}, \"id\":{}}}' {}", self.jsonrpc, self.method, self.params, self.id, url);
-        result
-    }
-```  
-
-could be changed to:  
-
-```rust
-pub fn as_sys_string(&self, url: String, max_time:u32) -> String {
-        let result = format!("-X POST -m {} --data '{{\"jsonrpc\":\"{}\", \"method\": \"{}\", \"params\":{:?}, \"id\":{}}}' {}", max_time, self.jsonrpc, self.method, self.params, self.id, url);
-        result
-    }
-```  
 
 You can inspect all interfaces with the repl tool, e.g.:
 
@@ -304,46 +288,62 @@ curl_adapter:
 ```
 
 ### Deploying our Services  
-The next step is to upload our work to the Fluence network. First, we need some tooling:
+The next step is to upload our work to the network, in this case the Fluence test network. 
+First, we need some tooling:
+
 ```bash
-npm i fldist -g
+npm i @fluencelabls/fldist -g
 ``` 
 This installs the Fluence [proto distributor](https://github.com/fluencelabs/proto-distributor), which makes deploying our service(s) quite easy. It also includes some magic to get your services to the right test network node(s). You may recall the steps to deploy our service from the [documentation](https://fluence-labs.readme.io/docs/service-lifecycle):
+
 1. Upload the module(s)
 2. Create the blueprint(s)
 3. Create the service(s)
 
-Since our project is structured as a "fat" service, we have two modules, see your artifacts directory, and one service. Let's get busy and upload our modules:
+Since our project is structured as a "fat" service, we have two modules, see your artifacts directory, and one service. Let's get busy and upload our modules to the network:
 
 ```bash 
-mbp16~/localdev/lw3d/web3-examples(main|✚3…) % fldist upload -n web3_test_curl_1  -p artifacts/curl_adapter.wasm
-seed: 911tQW1TWUXGY4TytZfmrpewFHQLc4AzbYUtWQ8oWaYV
-uploading module web3_test_curl_1 to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWC3Km9YRA71bCSjd526gu8BXqw7uX87hvRjAwsGpsqtcS
-
-mbp16~/localdev/lw3d/web3-examples(main|✚3…) % fldist upload -n web3_test_functions  -p artifacts/facade.wasm
-seed: DiRwpKx2M8wXD2KPnDDfNPKwN1WjvyEYHUAp3yvuy51N
-uploading module web3_test_functions to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3Ko
-``` 
-
+mbp16~/localdev/lw3d/web3-examples(main↑4|✚2…) % fldist upload -c curl_adapter/Config.json -p artifacts/curl_adapter.wasm -n curl_adapter
+seed: 8Nr1bfAkLzFKknwJzq5RGSkNMo9Hqk1ukF2bf7QkcBB5
+uploading module curl_adapter to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWRNGvgejbeY3aceVprwsPGgaVzvXeWGVeM8YY478JfRfE
+module uploaded successfully
+mbp16~/localdev/lw3d/web3-examples(main↑4|✚3…) % fldist upload -c facade/Config.json -p artifacts/facade.wasm -n web3_facade
+seed: AGjAP2TgthBuVJ3mESPJMRncKkamU1aMkyL4FLb4t529
+uploading module web3_facade to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWJeoiuxZuRhK91CcwcrHfGvZAekhVHrMkRDvEBnYDbkMQ
+fldist upload
+```
 Here we uploaded both modules to the test network and you need to make sure your module names are unique. That is, don't use
-<i>web3_test_curl_1</i> and <i>web3_test_functions</i> but come up with your own names. You can use `fldist get_modules` to get a list of all modules, and their respective names, on a node.
+<i>web3_test_curl_1</i> and <i>web3_test_functions</i> but come up with your own names. You can use `fldist get_modules` to get a list of all modules, and their respective names, on a node. Make sure you retain the response data! 
 
-Now we need to deploy our blueprint. Let's design one first:
+Let's use the `fldist` cli to verify our uploads:
+
+```bash
+mbp16~/localdev/lw3d/web3-examples(main↑4|✚3…) % fldist get_modules -s  8Nr1bfAkLzFKknwJzq5RGSkNMo9Hqk1ukF2bf7QkcBB5
+[[{"interface":{"function_signatures":[{"arguments":[["url","String"],["file_name","String"]],"name":"get_n_save",<snip>
+
+mbp16~/localdev/lw3d/web3-examples(main↑4|✚3…) % fldist get_modules -s AGjAP2TgthBuVJ3mESPJMRncKkamU1aMkyL4FLb4t529
+[[{"interface":{"function_signatures":[{"arguments":[["url","String"],["file_name","String"]],"name":"get_n_save" <snip>
+```
+
+Good to go to the next step: Deploy our blueprint. Let's design one first:
 ```
 blueprint:
 ```json
 {
-     "id": "uuid-dc0b258-65f0-11eb-bf24-acde48001122",
+     "id": dc0b258-65f0-11eb-bf24-acde48001132",
      "name": "eth_test_1",
      "dependencies": [ "curl_adapter", "facade"]
 }
 ```  
-The blueprint id is a UUID that you need to enerate . Don't reuse the one in the examples. We give our service-to-be a name and finally, we associate the necessary modules in depdencies. That's it. Of course, we need a blueprint for each servie we want to deploy. To deploy a blueprint, we:
+The blueprint id is a UUID that you need to generate . Don't reuse the one in the examples. We give our service-to-be a unique name and finally, we associate the necessary modules in dependencies. That's it. Of course, we need a blueprint for each service we want to deploy. To deploy a blueprint, we:
+
 ```bash
-mbp16~/localdev/lw3d/web3-examples(main|✚3…) % fldist add_blueprint -i uuid-dc0b258-65f0-11eb-bf24-acde48001122 -d [ web3_test_curl_1, web3_test_functions] -n eth_test_fat_service_1 -s 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QWrar
-uploading blueprint eth_test_fat_service_1 to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWSkpw3d4udWoQqQZsY5BpY7aqprQXwMKYgbNhSDfMbsxw
-```  
-We use the `fldist add_blueprint` command and add your blueprint id with the -i flag, the name with -n flag, and the dependecies with the -d flag. So what's the -s flag? It's our client seed which is our gateway to [security](https://fluence-labs.readme.io/docs/security-model). Fundamentally, the client seed is created as a base58 encoding of your ED25119 secret key. If you don't have a keypair, you can use <i>fldist</i> to create one:
+mbp16~/localdev/lw3d/web3-examples(main↑4|✚3…) % fldist add_blueprint -i dc0b258-65f0-11eb-bf24-acde48001132 -d curl_adapter web3_test_functions -n eth_test_fat_service_01 -s 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QQrar
+uploading blueprint eth_test_fat_service_01 to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooW9r3GAnRBa2RthsmTJq9tuvHvSFFJfN71hhcoErSBkFsZ
+blueprint 'dc0b258-65f0-11eb-bf24-acde48001132' added successfully
+```
+
+We use the `fldist add_blueprint` command and add our blueprint id with the -i flag, the name with -n flag, and the dependencies with the -d flag. So what's the -s flag? It's our client seed which is our gateway to [security](https://fluence-labs.readme.io/docs/security-model). Fundamentally, the client seed is created as a base58 encoding of your ED25119 secret key. If you don't have a keypair, you can use <i>fldist</i> to create one:
 
 ```bash
 mbp16~(:|✔) % fldist create_keypair
@@ -354,21 +354,26 @@ mbp16~(:|✔) % fldist create_keypair
   seed: '9M4taDKCDsJnjcmjHV8RuuW4Zj3fBU1MmKK1cKbwVUhq'
 }
 ```
-where seed feeds the -s flag. Make sure you safely retain this info. 
 
-Before we proceed, make sure your grab the client reference.e.g., 12D3KooWSkpw3d4udWoQqQZsY5BpY7aqprQXwMKYgbNhSDfMbsxw. Now we have our modules and blueprints on the network and can instantiate our service:
+where `seed` parameterizes the -s flag. Make sure you safely retain this info.
+
+Before we proceed, make sure your grab the client reference.e.g., 12D3KooW9r3GAnRBa2RthsmTJq9tuvHvSFFJfN71hhcoErSBkFsZ, and node reference, 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb, for future use. Now we have our modules and blueprints on the network and can instantiate our service:
+
 ```bash
-mbp16~/localdev/lw3d/web3-examples(main|✚3…) % fldist create_service -i uuid-dc0b258-65f0-11eb-bf24-acde48001122 -s 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QWrar
-service id: [object Promise]
-service created successfully
-creating service uuid-dc0b258-65f0-11eb-bf24-acde48001122
+mbp16~/localdev/lw3d/web3-examples(main↑4|✚3…) % fldist create_service  -i dc0b258-65f0-11eb-bf24-acde48001132  -s 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QQrar
+seed: 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QQrar
+peerId: bafzaajaiaejcaadnzc2ojxilwsklbn4777yckhm6ccvg6ilyj33kdceytydaypre
+creating service dc0b258-65f0-11eb-bf24-acde48001132
+fldist create_service
 ```
-This gives your services id.  
 
-Now we are all dressed up and need somehwere to go !!
+This gives your service id, dc0b258-65f0-11eb-bf24-acde48001132, and node id, bafzaajaiaejcaadnzc2ojxilwsklbn4777yckhm6ccvg6ilyj33kdceytydaypre. Now we can check on our final result:
 
+```bash
+fldist get_interfaces  -s 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QQrar  -p bafzaajaiaejcaadnzc2ojxilwsklbn4777yckhm6ccvg6ilyj33kdceytydaypre|grep dc0b258-65f0-11eb-bf24-acde48001132
+```
+
+So far so good. Now we are all dressed up and need somehwere to go !!
+In the next section we put it all together in a frontend application. If you haven't had time to look over the various filter functions, this is a good time to do so.
 ### Frontend
-Coming soon.
-
-
-
+Our front is quite simple but suffices to illustrate and work through the key concepts of using our deployed modules and services. The task at hand is to install the pending trasnaction filter, [eth_newPendingTransactionFilter](https://eth.wiki/json-rpc/API#eth_newpendingtransactionfilter), and to peridically poll with [eth_getFilterChanges](https://eth.wiki/json-rpc/API#eth_getfilterchanges)from our deplyoed module and services. The result is a table of pending transaction data including tx hash and gas. 
