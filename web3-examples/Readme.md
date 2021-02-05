@@ -43,7 +43,7 @@ Recall from the [documentation](https://fluence-labs.readme.io/docs/services-dev
 
 For the time being, our go-to transport comes courtesy of [curl](https://curl.se/docs/) as a service. Please note that since curl generally does not provide web socket (ws, wss) capabilities, https is our transport tool of choice. This has a few implications especially when it comes blockchain client access as a service. For example, a subset of the Ethereum JSON RPC calls in [Infura](https://infura.io/docs/ethereum/wss/introduction), are only accessible via wss. However,[Alchemy](https://www.alchemyapi.io/) offers a viable alternative. Using curl generally has no performance penalties and in most cases actually speeds things up but it should be noted that leaving the WASM sandbox comes at a cost: a node provider can easily monitor and exploit curl call data, such as api-keys. If that is a concern, we recommend you run your own node; if it is more of a testnet concern, we recommend using project-specific api-keys, and rotate them periodically.
 
-As mentioned earlier, async is currently not quite there but the Fluence team has implemented a cron-based work-around to allow polling as part of the native node services.
+As mentioned earlier, async is currently not quite there but the Fluence team has implemented a cron-like work-around to allow polling as part of the native node services.
 
 From a development perspective, a little extra care needs to extended with respect to error management. Specifically, Result<_,_> does not work out of the box in WASI. If you want to return a Result, you need to implement your own. See web3-examples/facade/src/fce_results.rs for examples.
 
