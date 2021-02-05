@@ -361,16 +361,17 @@ Before we proceed, make sure your grab the client reference.e.g., 12D3KooW9r3GAn
 
 ```bash
 mbp16~/localdev/lw3d/web3-examples(main↑4|✚3…) % fldist create_service  -i dc0b258-65f0-11eb-bf24-acde48001132  -s 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QQrar
-seed: 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QQrar
-peerId: bafzaajaiaejcaadnzc2ojxilwsklbn4777yckhm6ccvg6ilyj33kdceytydaypre
+client seed: CovY7pi37Hksxk6KvLoiYT6udHXSF8C86YrtFPnswenj
+client peerId: 12D3KooWEUd1RYhbDESfgjw1XiZe7wrFXK1DQ97r7TZdXPXHpSTM
+node peerId: 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb
 creating service dc0b258-65f0-11eb-bf24-acde48001132
 fldist create_service
 ```
 
-This gives your service id, dc0b258-65f0-11eb-bf24-acde48001132, and node id, bafzaajaiaejcaadnzc2ojxilwsklbn4777yckhm6ccvg6ilyj33kdceytydaypre. Now we can check on our final result:
+This gives your service id, dc0b258-65f0-11eb-bf24-acde48001132, and node id, 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb. Now we can check on our final result:
 
 ```bash
-fldist get_interfaces  -s 7sHe8vxCo4BkdPNPdb8f2T8CJMgTmSvBTmeqtH9QQrar  -p bafzaajaiaejcaadnzc2ojxilwsklbn4777yckhm6ccvg6ilyj33kdceytydaypre|grep dc0b258-65f0-11eb-bf24-acde48001132
+fldist get_interfaces -p 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb|grep dc0b258-65f0-11eb-bf24-acde48001132
 ```
 
 So far so good. Now we are all dressed up and need somehwere to go !!
