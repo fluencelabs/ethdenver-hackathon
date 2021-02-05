@@ -180,13 +180,16 @@ body {
     background-color: white;
 
     box-shadow: $shadow;
+}
 
-    & td {
-        @include font(14px);
-        min-width: 100px;
-    }
+th {
+    @include font(18px);
+    min-width: 100px;
+    border-bottom: 20px solid transparent;
+}
 
-    & th {
-        @include font(16px);
-    }
+td {
+    @include font(14px);
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
 }
