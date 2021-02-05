@@ -16,9 +16,7 @@ const intervalMs = 4000;
 
 const App = () => {
     const [client, setClient] = useState<FluenceClient | null>(null);
-    const [serviceUrl, setServiceUrl] = useState(
-        'https://eth-mainnet.alchemyapi.io/v2/2FLlm9t-xOm0CbGx-ORr81li1yD_cKP6',
-    );
+    const [ethNodeUrl, setEthNodeUrl] = useState('');
     const [filterId, setFilterId] = useState<string | null>(null);
     const [timer, setTimer] = useState<any>();
     const [data, setData] = useState<TxInfo[]>([]);
@@ -29,7 +27,7 @@ const App = () => {
         }
 
         try {
-            const data = await getFilterChangesWithoutNulls(client, serviceUrl, filterId, '50');
+            const data = await getFilterChangesWithoutNulls(client, ethNodeUrl, filterId, '50');
             console.log(data);
             setData((prev) => {
                 return [...data, ...prev];
@@ -57,7 +55,7 @@ const App = () => {
         }
 
         try {
-            const filterId = await createFilter(client, serviceUrl);
+            const filterId = await createFilter(client, ethNodeUrl);
             setFilterId(filterId);
             const timer = setInterval(updateData, intervalMs, filterId);
             setTimer(timer);
@@ -75,7 +73,7 @@ const App = () => {
             clearInterval(timer);
             setTimer(null);
 
-            const res = await removeFilter(client, serviceUrl, filterId);
+            const res = await removeFilter(client, ethNodeUrl, filterId);
             console.log(res);
             setFilterId(null);
             setData([]);
@@ -96,16 +94,17 @@ const App = () => {
                 </div>
             </div>
             <div className="content">
+                <div>Node address. e.g: https://eth-mainnet.alchemyapi.io/v2/xxxxxxx-xxxxxxxx-xxxxxxxxxx_xxxx</div>
                 <div>
                     <input
                         className="text-input"
-                        onChange={(e) => setServiceUrl(e.target.value)}
+                        onChange={(e) => setEthNodeUrl(e.target.value)}
                         type="text"
-                        value={serviceUrl}
+                        value={ethNodeUrl}
                     />
                 </div>
                 <div className="buttons">
-                    <button className="button" onClick={start}>
+                    <button disabled={!ethNodeUrl} className="button" onClick={start}>
                         start
                     </button>
 
@@ -127,8 +126,8 @@ const App = () => {
                             <tr key={x.hash}>
                                 <td className="td1">{x.from}</td>
                                 <td className="td2">{x.to}</td>
-                                <td className="td3">{x.gas}</td>
-                                <td className="td4">{x.gasPrice}</td>
+                                <td className="td3">{parseInt(x.gas, 16)}</td>
+                                <td className="td4">{parseInt(x.gasPrice, 16)}</td>
                                 <td className="td5">{x.hash}</td>
                             </tr>
                         ))}
