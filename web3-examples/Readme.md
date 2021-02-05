@@ -377,4 +377,24 @@ fldist get_interfaces -p 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb|gr
 So far so good. Now we are all dressed up and need somehwere to go !!
 In the next section we put it all together in a frontend application. If you haven't had time to look over the various filter functions, this is a good time to do so.
 ### Frontend
-Our front is quite simple but suffices to illustrate and work through the key concepts of using our deployed modules and services. The task at hand is to install the pending trasnaction filter, [eth_newPendingTransactionFilter](https://eth.wiki/json-rpc/API#eth_newpendingtransactionfilter), and to peridically poll with [eth_getFilterChanges](https://eth.wiki/json-rpc/API#eth_getfilterchanges)from our deplyoed module and services. The result is a table of pending transaction data including tx hash and gas. 
+Our frontend is quite simple but more than suffices to illustrate and work through the key concepts of using our deployed modules and services. The task at hand is to install the pending trasnaction filter, [eth_newPendingTransactionFilter](https://eth.wiki/json-rpc/API#eth_newpendingtransactionfilter), and to peridically poll with [eth_getFilterChanges](https://eth.wiki/json-rpc/API#eth_getfilterchanges)from our deplyoed module and services. The result is a table of pending transaction data including tx hash and gas. Why checkout pending transactions? Well, it's good for just about anything from looking for front-running opportunities to arriving at pretty accurate gas estimates and transaction backlogs, aka mainnet congestion.
+
+Before we dive into the meaty details, let's take the frontend for a spin. From the repo root:
+
+```bash
+cd /web-frontend
+npm install
+npm start
+```
+
+Now open a tab in browser in `localhost:3000` enter you ethereum mainnet client url, and press the proverbial start button and pretty soon you should see yor Fluence services go to work, fetching, filtering, and transforming on the Fluence test network. Very cool in its own right but if you compare that to your average cloud service, this is a pretty slick worflow  -- and we're not even close to being done !!
+
+So how did we harness the modules and services "out there on the network" ?  Well, remember Aquamarine and AIR? That's how we do it. Assuming you are still in the web-frontend dir, have a look at src/components/fluence.ts.
+
+```typescript
+import { FluenceClient, Particle, sendParticleAsFetch } from '@fluencelabs/fluence';
+import { testNet, dev } from '@fluencelabs/fluence-network-environment';
+
+const timeout = 20000;
+
+export const relayNode = dev[2];

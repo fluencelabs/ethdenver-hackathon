@@ -1,24 +1,6 @@
-# Workshop preparation
+# ETHDenver Virtual 2021 Hackathon Workshop
 
-## Overview
-* Fluence Stack & Tooling
-  * Node
-  * FCE
-  * Aquamarine 
-  
+When: Saturday, 02/06/2021, 9:30am - 10:00am MST
+Where: https://streamyard.com/dx7c9rhaf2
 
-## Service Lifecyle
-    * Create Hello World/Greetings
-    * fce-repl locally
-    * Deploy To testnetwork
-    * use it
-    * remove service from network
-  
-  Note: Does it make sense to create one service "hello", or "ping", another one "world", or "pong", and then compose them to get "hello world", or "ping pong" ? 
-  
-## Ethereum related stuff  
-  * ethereum types
-  * web3 examples
-  * cron job
-
-
+Stay tuned for updates.
