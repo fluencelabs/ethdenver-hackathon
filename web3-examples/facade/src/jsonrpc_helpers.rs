@@ -39,3 +39,46 @@ impl Request {
         result
     }
 }
+
+/*
+[
+    {
+        "jsonrpc": "2.0",
+        "method": "eth_getTransactionByHash",
+        "params": [
+            "0xdb3fbed87cc7834981610df7e5827c09b9d2496bb5a6ae604bf7c603a6f79d80"
+        ],
+        "id": 766
+    },
+    {
+        "jsonrpc": "2.0",
+        "method": "eth_getTransactionByHash",
+        "params": [
+            "0x8bc16f653235d2130e5fd05659c290dcba2095681e9e3d04805c92f38914b6ce"
+        ],
+        "id": 767
+    }
+]
+ */
+pub fn batch(url: String, method: String, params: Vec<Vec<String>>, id_start: u64) -> serde_json::Result<Vec<String>> {
+    use serde_json::json;
+
+    params.chunks(50).map(|params| {
+        let mut id = id_start;
+        let requests: Vec<_> = params.into_iter().map(|params| {
+            let value = json!({
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": params,
+            "id": id
+        });
+            id += 1;
+            value
+        }).collect();
+
+        let requests = serde_json::to_string(&requests)?;
+        let curl_args = format!(r#"-s -X POST --data '{}' {}"#, requests, url);
+
+        Ok(curl_args)
+    }).collect()
+}
