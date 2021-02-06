@@ -35,10 +35,9 @@ The [web3-examples](web3-examples/Readme.md) repo contains a variety of backend 
 ## Hackathon Support And Resources
 Throughout ETHDenvers, the Fluence team is available to support your journey every step of the way. You can contact us in the ETHDenver [discord](https://discord.gg/6MHXkJd6) channel or schedule a call via [Calendly](https://calendly.com/fluencehack).
 
-For video introductions for all things Fluence, please see visit our [Youtube](https://www.youtube.com/channel/UC3b5eFyKRFlEMwSJ1BTjpbw) channel or pick and choose from specific topics:
+For video introductions to all things Fluence, please see visit our [Youtube](https://www.youtube.com/channel/UC3b5eFyKRFlEMwSJ1BTjpbw) channel or pick and choose from specific topics:
 * Open applications infrastructure: [Intro to Fluence](https://youtu.be/FpmT2w0zNE0)
 * [Aquamarine](https://youtu.be/EcS0jT8a_dk) 101
 * [Aquamarine under the hood](https://youtu.be/SQXq7Voky1w)
 * Service [creation and distribution](https://youtu.be/XmkuJkPaFEQ) with the Fluence Network 
 * Building a [front-end](https://youtu.be/c1WPIE5RwL4) for a p2p app
-

@@ -1,7 +1,7 @@
 # EthDenver Virtual '21 Fluence Hackathon  
 
 ## Introduction  
-This quickstart aims to get teams up and running with the Fluence stack and Ethereum. If you're new to Fluence, give the ol' [documentation](https://fluence-labs.readme.io/docs) a gander before diving in. Please note that the Fluence stack is under heavy development. If you find errors, incompatibilities or the dreaded dead link, post an issue or even better, push a PR.
+This quickstart aims to get teams up and running with the Fluence stack and Ethereum. If you're new to Fluence, give the ol' [documentation](https://fluence.dev/docs) a gander before diving in. Please note that the Fluence stack is under heavy development. If you find errors, incompatibilities or the dreaded dead link, post an issue or even better, push a PR.
 ## Fluence  
 [Fluence](https://fluence.network/) is an open application platform powered by a peer-to-peer computing protocol and a decentralized licensing system. Fluence enables developers to host services and applications on the decentralized network and collaborate on live applications, reusing components and data. The protocol creates an open marketplace of compute capacity, so availability and pricing are not controlled by a single company and instead are driven by competitive market forces.
 
@@ -11,13 +11,13 @@ The Fluence solution is well positioned to empower developers to create, deploy,
 
 Let's get started.  
 ## Quickstart
-The point of this tutorial is to get you up-to-speed and productive with the Fluence stack as quickly as possible in the context of Web3 development. To this end, we bootstrap from a few [Ethereum JSON-RPC](https://eth.wiki/json-rpc/API) calls to a stylized frontend and cover all the good stuff along the way. If you haven't had a chance to work through the [greeting example](https://fluence-labs.readme.io/docs/how-to-develop-a-module), this might be a good time. For additional examples, check out the [fce](https://github.com/fluencelabs/fce/tree/master/examples) repo, [fluent pad](https://github.com/fluencelabs/fluent-pad,and the [aqua demo](https://github.com/fluencelabs/aqua-demo).
+The point of this tutorial is to get you up-to-speed and productive with the Fluence stack as quickly as possible in the context of Web3 development. To this end, we bootstrap from a few [Ethereum JSON-RPC](https://eth.wiki/json-rpc/API) calls to a stylized frontend and cover all the good stuff along the way. If you haven't had a chance to work through the [greeting example](https://fluence.dev/docs/how-to-develop-a-module), this might be a good time. For additional examples, check out the [fce](https://github.com/fluencelabs/fce/tree/master/examples) repo and the [fluent pad](https://github.com/fluencelabs/fluent-pad) and [aqua demo](https://github.com/fluencelabs/aqua-demo) demos.
 
-Before we dive in, setup your [Rust](https://www.rust-lang.org/tools/install) and [Fluence environment](https://fluence-labs.readme.io/docs/how-to-develop-a-module) if you haven't done so already, clone this repo to your machine or instance:
+Before we dive in, setup your [Rust](https://www.rust-lang.org/tools/install) and [Fluence environment](https://fluence.dev/docs/how-to-develop-a-module) if you haven't done so already, clone this repo to your machine or instance:
 
-TODO: need final repo and urls.
 ```bash
-git clone 
+git clone git@github.com:fluencelabs/ethdenver-hackathon.git
+cd ethdenver-hackathon
 ```
 
 and build the examples: 
@@ -35,14 +35,14 @@ mkdir artifacts
 
 where the artifacts directory serves as a convenient destination for the wasm files we create with the build process.
 
-Recall from the [create a service](https://fluence-labs.readme.io/docs/services-development) docs that a service is comprised of one or more modules. For for the purposes of a our tutorial, we are working with a "fat" service, i.e., one service with multiple modules. For all intents and purposes, this is not advisable but helpful for keeping things tight for this overview.  
+Recall from the [create a service](https://fluence.dev/docs/services-development) docs that a service is comprised of one or more modules. For for the purposes of a our tutorial, we are working with a "fat" service, i.e., one service with multiple modules. For all intents and purposes, this is not advisable but helpful for keeping things tight for this overview.  
 
 ### Getting Started With Fluence and Web3 Services  
 [WASM](https://developer.mozilla.org/en-US/docs/WebAssembly) is a relatively new concept and WASM for backend  is even newer, e.g., [wasmer](https://github.com/wasmerio/wasmer), [WASI](https://github.com/CraneStation/wasi), but maturing at a rapid clip. Yet, there are still limitations we need to be aware of. For example, sock support and async capabilities are currently not available. Not to worry, we can work around those constraints without too much heavy lifting and still build effective solutions.
 
 For the time being, our go-to transport comes courtesy of [curl](https://curl.se/docs/) as a service. Please note that since curl generally does not provide web socket (ws, wss) capabilities, https is our transport tool of choice. This has a few implications especially when it comes blockchain client access as a service. For example, a subset of the Ethereum JSON RPC calls in [Infura](https://infura.io/docs/ethereum/wss/introduction), are only accessible via wss. Luckily, [Alchemy](https://www.alchemyapi.io/) offers a viable alternative for those not running their own node. Using curl generally has no performance penalties and in most cases actually speeds things up but it should be noted that leaving the WASM sandbox comes at a cost: a node provider can easily monitor and exploit curl call data, such as api-keys. If that is a concern, we recommend you run your own node; if it is more of a testnet concern, we recommend using project-specific api-keys, and rotate them periodically.
 
-As mentioned earlier, async is currently not quite there but the Fluence team has implemented a [cron-like](https://fluence-labs.readme.io/docs/built-in-services#script-add) scrint to allow polling as part of the native node services.
+As mentioned earlier, async is currently not quite there but the Fluence team has implemented a [cron-like](https://fluence.dev/docs/built-in-services#script-add) script to allow polling as part of the native node services.
 
 From a development perspective, a little extra care needs to be taken with respect to error management. Specifically, Result<_,_> does not work out of the box in WASI. If you want to return a Result, you need to implement your own. See the [example](facade/src/fce_results.rs) code.
 
@@ -74,7 +74,7 @@ pub fn eth_get_balance(url: String, account: String, block_number: String) -> Js
 }
 ```  
 
-This code snippet is based on the Ethereum JSON-RPC API [eth_getBalance](https://eth.wiki/json-rpc/API#eth_getbalance) and returns the balance of the named account for the destination chain specified. We implement that method by combining our custom code with the [curl module](https://fluence-labs.readme.io/docs/creating-a-service#curl-module). This call should look familiar to most dAPP developers, although Web3 libraries abstract over the raw calls.
+This code snippet is based on the Ethereum JSON-RPC API [eth_getBalance](https://eth.wiki/json-rpc/API#eth_getbalance) and returns the balance of the named account for the destination chain specified. We implement that method by combining our custom code with the [curl module](https://fluence.dev/docs/creating-a-service#curl-module). This call should look familiar to most dAPP developers, although Web3 libraries abstract over the raw calls.
 
 So what's going on?
 1.  We apply the fce macro to the function, which returns our custom [JsonRpcResult](facade/src/results.rs)
@@ -102,7 +102,7 @@ result: Object({"error": String(""), "id": Number(2), "jsonrpc": String("2.0"), 
 2>
 ```
 
-Before we dive into what's been happening, make sure you are familiar with the [Fluence REPL](https://fluence-labs.readme.io/docs/fluence-repl) and the construction of [Config.toml](Config.toml).
+Before we dive into what's been happening, make sure you are familiar with the [Fluence REPL](https://fluence.dev/docs/fluence-repl) and the construction of [Config.toml](Config.toml).
 
 We specify that we want to `call` the `eth_get_balance` function from the `facade` module with our Ethereum node `url` and `latest` block parameters.
 Note that for the purpose of the examples, we return the raw result(s), which are usually hex strings; due to the Result limitations discussed earlier, you need to explicitly check the error string before processing the result. In a general manner, this entails:
@@ -290,13 +290,13 @@ curl_adapter:
 
 ```
 
-First, we need some [tooling](https://fluence-labs.readme.io/docs/upload-example-to-the-fluence-network):
+First, we need some [tooling](https://fluence.dev/docs/upload-example-to-the-fluence-network):
 
 ```bash
 npm i @fluencelabls/fldist -g
 ```
 
-This installs the Fluence [proto distributor](https://github.com/fluencelabs/proto-distributor), which makes deploying our service(s) quite easy. It also includes some magic to get your services to the right test network node(s). You may recall the steps to deploy our service from the [documentation](https://fluence-labs.readme.io/docs/service-lifecycle):
+This installs the Fluence [proto distributor](https://github.com/fluencelabs/proto-distributor), which makes deploying our service(s) quite easy. It also includes some magic to get your services to the right test network node(s). You may recall the steps to deploy our service from the [documentation](https://fluence.dev/docs/service-lifecycle):
 
 1. Upload the module(s)
 2. Create the blueprint(s)
@@ -328,7 +328,7 @@ mbp16~/localdev/lw3d/web3-examples(main↑4|✚3…) % fldist get_modules -s AGj
 [[{"interface":{"function_signatures":[{"arguments":[["url","String"],["file_name","String"]],"name":"get_n_save" <snip>
 ```
 
-Looks lie we are good to go to the next step: Deploy our [blueprint](https://fluence-labs.readme.io/docs/service-lifecycle#blueprints), which essentially is a configuration object. Let's design one:
+Looks lie we are good to go to the next step: Deploy our [blueprint](https://fluence.dev/docs/service-lifecycle#blueprints), which essentially is a configuration object. Let's design one:
 
 ```
 blueprint:
@@ -348,7 +348,7 @@ uploading blueprint eth_test_fat_service_01 to node 12D3KooWBUJifCTgaxAUrcM9Jysq
 blueprint 'dc0b258-65f0-11eb-bf24-acde48001132' added successfully
 ```
 
-We use the `fldist add_blueprint` command and add our blueprint id with the -i flag, the name with -n flag, and the dependencies with the -d flag. So what's the -s flag? It's our client seed which is our gateway to [security](https://fluence-labs.readme.io/docs/security-model). Fundamentally, the client seed is created as a base58 encoding of your ED25119 secret key. If you don't have a keypair, you can use <i>fldist</i> to create one:
+We use the `fldist add_blueprint` command and add our blueprint id with the -i flag, the name with -n flag, and the dependencies with the -d flag. So what's the -s flag? It's our client seed which is our gateway to [security](https://fluence.dev/docs/security-model). Fundamentally, the client seed is created as a base58 encoding of your ED25119 secret key. If you don't have a keypair, you can use <i>fldist</i> to create one:
 
 ```bash
 mbp16~(:|✔) % fldist create_keypair
