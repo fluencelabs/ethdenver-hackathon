@@ -104,6 +104,7 @@ pub fn service_info() -> String {
         name: String,
         package: String,
         source: String,
+        license: String,
         version: String,
     }
 
@@ -111,6 +112,7 @@ pub fn service_info() -> String {
         name: String::from("Cuckoo Filter"),
         package: String::from("https://crates.io/crates/cuckoofilter"),
         source: String::from("https://github.com/axiomhq/rust-cuckoofilter"),
+        license: String::from("MIT"),
         version: String::from("0.5.0"),
     };
 
