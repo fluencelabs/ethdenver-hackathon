@@ -10,4 +10,5 @@ edition = "2018"
 serde = {version = "1.0.0" }
 serde_json = {version = "1.0.62"}
 cuckoofilter ={version="0.5.0", features=["serde_support"] }
-fluence = "0.2.18"
+log = "0.4"
+fluence = { version = "0.2.18", features = ["logger"] }
