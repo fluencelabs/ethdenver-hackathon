@@ -1,17 +1,12 @@
 use cuckoofilter::{CuckooFilter, ExportedCuckooFilter};
-use fluence::{fce, WasmLogger};
+use fluence::fce;
 use serde::Serialize;
 use serde_json;
 use std::collections::hash_map::DefaultHasher;
 
 type CF = CuckooFilter<DefaultHasher>;
 
-fn main() {
-    WasmLogger::new()
-        .with_log_level(log::Level::Info)
-        .build()
-        .unwrap()
-}
+fn main() {}
 
 fn ser_cf(cf: CF) -> String {
     let exp_cf: ExportedCuckooFilter = cf.export();
@@ -32,10 +27,11 @@ fn de_cf(cf: String) -> Result<CF, String> {
 }
 
 #[fce]
-pub fn create_cf(with_capacity: u32) -> String {
-    let cf = match with_capacity {
+pub fn create_cf(with_capacity: String) -> String {
+    let capacity = with_capacity.parse::<u32>().unwrap();
+    let cf = match  capacity{
         0 => CuckooFilter::<DefaultHasher>::new(),
-        _ => CuckooFilter::<DefaultHasher>::with_capacity(with_capacity as usize),
+        _ => CuckooFilter::<DefaultHasher>::with_capacity(capacity as usize),
     };
     ser_cf(cf)
 }
