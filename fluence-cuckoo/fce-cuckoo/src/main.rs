@@ -3,22 +3,32 @@ use fluence::fce;
 use serde::Serialize;
 use serde_json;
 use std::collections::hash_map::DefaultHasher;
+use flate2::Compression;
+use flate2::read::ZlibDecoder;
+use flate2::write::ZlibEncoder;
+use std::io::prelude::*;
 
 type CF = CuckooFilter<DefaultHasher>;
 
 fn main() {}
 
-fn ser_cf(cf: CF) -> String {
+fn ser_cf(cf: CF) -> Vec<u8> {
     let exp_cf: ExportedCuckooFilter = cf.export();
     let ser_cf: String = serde_json::to_string(&exp_cf).unwrap();
-    ser_cf
+    let mut e = ZlibEncoder::new(Vec::new(), Compression::default());
+    e.write_all(&ser_cf.as_bytes());
+    e.finish().unwrap()
 }
 
-fn de_cf(cf: String) -> Result<CF, String> {
+fn de_cf(cf: Vec<u8>) -> Result<CF, String> {
+    let mut zd = ZlibDecoder::new(&cf[..]);
+    let mut string_buf = String::new();
+    zd.read_to_string(&mut string_buf).unwrap();
+
     let ser: std::result::Result<ExportedCuckooFilter, serde_json::Error> =
-        serde_json::from_str(&cf.as_str());
+        serde_json::from_str(&string_buf.as_str());
     if ser.is_err() {
-        return Err(format!("Failed to deserialize cf: {}", cf));
+        return Err(format!("Failed to deserialize cf: {:?}", cf));
     }
 
     Ok(cuckoofilter::CuckooFilter::<DefaultHasher>::from(
@@ -27,7 +37,7 @@ fn de_cf(cf: String) -> Result<CF, String> {
 }
 
 #[fce]
-pub fn create_cf(with_capacity: String) -> String {
+pub fn create_cf(with_capacity: String) -> Vec<u8> {
     let capacity = with_capacity.parse::<u32>().unwrap();
     let cf = match  capacity{
         0 => CuckooFilter::<DefaultHasher>::new(),
@@ -41,7 +51,7 @@ pub fn create_cf(with_capacity: String) -> String {
 // pub fn create_and_add_cf<T: ?Sized + Hash>(data: &T) -> String {
 // until then, we use bytesrings although a json string of array of values should also work
 // regardless, we lose some type discrimintation as 5u32 != 5u64 where in &[u8] it is.
-pub fn create_and_add_cf(data: Vec<Vec<u8>>) -> String {
+pub fn create_and_add_cf(data: Vec<Vec<u8>>) -> Vec<u8> {
     let mut cf: CF = CuckooFilter::<DefaultHasher>::new();
     for v in data.iter() {
         cf.add(v);
@@ -50,8 +60,8 @@ pub fn create_and_add_cf(data: Vec<Vec<u8>>) -> String {
 }
 
 #[fce]
-pub fn add(data: Vec<Vec<u8>>) -> String {
-    let mut cf: CF = CuckooFilter::<DefaultHasher>::new();
+pub fn add(cf: Vec<u8>, data: Vec<Vec<u8>>) -> Vec<u8> {
+    let mut cf: CF = de_cf(cf).unwrap();
     let mut result = Vec::<bool>::new();
     for v in data.iter() {
         cf.add(v).unwrap();
@@ -61,7 +71,7 @@ pub fn add(data: Vec<Vec<u8>>) -> String {
 }
 
 #[fce]
-pub fn delete(cf: String, items: Vec<Vec<u8>>) -> Vec<bool> {
+pub fn delete(cf: Vec<u8>, items: Vec<Vec<u8>>) -> Vec<bool> {
     let mut cf = de_cf(cf).unwrap();
     let mut result = Vec::<bool>::new();
     for item in items.iter() {
@@ -71,7 +81,7 @@ pub fn delete(cf: String, items: Vec<Vec<u8>>) -> Vec<bool> {
 }
 
 #[fce]
-pub fn contains(cf: String, items: Vec<Vec<u8>>) -> Vec<bool> {
+pub fn contains(cf: Vec<u8>, items: Vec<Vec<u8>>) -> Vec<bool> {
     let cf = de_cf(cf).unwrap();
     let mut result = Vec::<bool>::new();
     for item in items.iter() {
@@ -87,13 +97,13 @@ pub fn is_empty(cf: String) -> bool {
 }
 
 #[fce]
-pub fn memory_usage(cf: String) -> u64 {
+pub fn memory_usage(cf: Vec<u8>) -> u64 {
     let cf = de_cf(cf).unwrap();
     cf.memory_usage() as u64
 }
 
 #[fce]
-pub fn len(cf: String) -> u64 {
+pub fn len(cf: Vec<u8>) -> u64 {
     let cf = de_cf(cf).unwrap();
     cf.len() as u64
 }
