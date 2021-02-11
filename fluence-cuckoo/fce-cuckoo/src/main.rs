@@ -91,7 +91,7 @@ pub fn contains(cf: Vec<u8>, items: Vec<Vec<u8>>) -> Vec<bool> {
 }
 
 #[fce]
-pub fn is_empty(cf: String) -> bool {
+pub fn is_empty(cf: Vec<u8>) -> bool {
     let cf = de_cf(cf).unwrap();
     cf.is_empty()
 }
