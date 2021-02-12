@@ -35,8 +35,9 @@ mkdir artifacts
 
 where the artifacts directory serves as a convenient destination for the wasm files we create with the build process.
 
-Recall from the [create a service](https://fluence.dev/docs/services-development) docs that a service is comprised of one or more modules. For for the purposes of a our tutorial, we are working with a "fat" service, i.e., one service with multiple modules. For all intents and purposes, this is not advisable but helpful for keeping things tight for this overview.  
+Recall from the [create a service](https://fluence.dev/docs/services-development) docs that a service is comprised of one or more modules. For for the purposes of a our tutorial, we are working with a "fat" service, i.e., one service with multiple modules. For all intents and purposes, this is not advisable but helpful for keeping things tight for this overview.
 
+Before we proceed, make sure you have an ethereum node running and ready to connect. If you prefer to use a node-as-a-service, we recommend [Alchemy](https://www.alchemyapi.io/), which offers a generous free account.
 ### Getting Started With Fluence and Web3 Services  
 [WASM](https://developer.mozilla.org/en-US/docs/WebAssembly) is a relatively new concept and WASM for backend  is even newer, e.g., [wasmer](https://github.com/wasmerio/wasmer), [WASI](https://github.com/CraneStation/wasi), but maturing at a rapid clip. Yet, there are still limitations we need to be aware of. For example, sock support and async capabilities are currently not available. Not to worry, we can work around those constraints without too much heavy lifting and still build effective solutions.
 
@@ -46,7 +47,35 @@ As mentioned earlier, async is currently not quite there but the Fluence team ha
 
 From a development perspective, a little extra care needs to be taken with respect to error management. Specifically, Result<_,_> does not work out of the box in WASI. If you want to return a Result, you need to implement your own. See the [example](facade/src/fce_results.rs) code.
 
-In the web3-examples folder, we illustrate the core concepts of Web3 service development with a few Ethereum JSON-RPC calls. In a nutshell, [FCE](https://github.com/fluencelabs/fce) compliant services are written and compiled with `fce build`. The resulting WASM modules can then be locally inspected and executed with the Fluence repl, `fce-repl`.
+In the web3-examples folder, we illustrate the core concepts of Web3 service development with a few Ethereum JSON-RPC calls. In a nutshell, [FCE](https://github.com/fluencelabs/fce) compliant services are written and compiled with `fce build`. Let's install the tool:
+
+```bash
+cargo install fcli
+```
+
+Or see the Fluence [documentation](https://fluence.dev/docs/setting-up-the-development-environment) for a step-by-step dev setup.
+
+The resulting WASM modules can then be locally inspected and executed with the Fluence repl, `fce-repl`, e.g.:
+
+```bash
+mbp16~/localdev/ethdenver-hackathon/web3-examples(main|✚3…) % fce-repl Config.toml
+Welcome to the FCE REPL (version 0.1.33)
+app service was created with service id = 78f2f68f-cec6-4134-b69e-e4826dc2a846
+elapsed time 180.489951ms
+
+1> help
+Commands:
+
+n/new [config_path]                       create a new service (current will be removed)
+l/load <module_name> <module_path>        load a new Wasm module
+u/unload <module_name>                    unload a Wasm module
+c/call <module_name> <func_name> [args]   call function with given name from given module
+i/interface                               print public interface of all loaded modules
+e/envs <module_name>                      print environment variables of a module
+f/fs <module_name>                        print filesystem state of a module
+h/help                                    print this message
+q/quit/Ctrl-C                             exit
+```
 
 ### A Simple Example
 Let's have a look at one of the examples, eth_get_balance, from `eth_calls_test.rs`:  
@@ -391,5 +420,5 @@ npm install
 npm start
 ```
 
-Now open a tab in browser and navigate to `localhost:3000`, enter your ethereum mainnet client url, and press the proverbial start button and pretty soon you should see your Fluence services go to work -- fetching, filtering, and transforming pending transaction data on the Fluence test network. Right on and a long time coming.
+Now open a tab in browser and navigate to `localhost:3000`, enter your Ethereum mainnet client url, and press the proverbial start button and pretty soon you should see your Fluence services go to work -- fetching, filtering, and transforming pending transaction data on the Fluence test network. Right on and a long time coming.
 
