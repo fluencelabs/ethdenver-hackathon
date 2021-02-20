@@ -9,12 +9,10 @@
 mkdir -p artifacts
 
 cd curl_adapter
-cargo update
 fce build --release
 cd ..
 
 cd facade
-cargo update
 fce build --release
 cd ..
 
