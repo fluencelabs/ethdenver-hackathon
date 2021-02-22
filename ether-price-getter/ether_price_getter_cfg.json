@@ -1,6 +1,3 @@
 {
-    "name": "Ether-Price-Getter",
-    "dependencies": [
-        "curl_adapter"
-    ]
+    "name": "Ether-Price-Getter"
 }
