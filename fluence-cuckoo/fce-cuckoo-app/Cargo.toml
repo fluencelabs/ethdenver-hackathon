@@ -1,5 +1,5 @@
 [package]
-name = "fce-cuckoo-app"
+name = "fluence-test"
 version = "0.1.0"
 authors = ["boneyard93501 <4523011+boneyard93501@users.noreply.github.com>"]
 edition = "2018"
@@ -7,3 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+test-utils = { path = "fluence/crates/test-utils/"}
+fstrings = { version="0.2.3" }
+maplit = "1.0.2"
+# serde = "1.0.123"
+serde_json = "1.0.62"
