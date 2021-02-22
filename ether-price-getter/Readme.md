@@ -1,19 +1,19 @@
 # Ether Price Quotation Service
 
 ## Overview
-This module utilizes curl and the Coinbase API to allow the query of the latest Ether (ETH) price relative to some 120 currencies. The service requires a valid Coinmarketcap API key, which is freely available with [registration](). The query function wraps this API call: https://coinmarketcap.com/api/documentation/v1/#operation/getV2CryptocurrencyQuotesLatest:
+This module utilizes curl and the [Coinmarketcap API](https://coinmarketcap.com/api/) to allow the query of the latest Ether (ETH) price relative to some 120 currencies. The service requires a valid Coinmarketcap API key, which is freely available with [registration](https://pro.coinmarketcap.com/signup/). The query function wraps this API call: https://coinmarketcap.com/api/documentation/v1/#operation/getV2CryptocurrencyQuotesLatest:
 
 ```bash
 ether_price_getter(api_key: String, currency_symbol: String)
 ```
 
-which expects the Coinmarketcap API key and the three letter currency symbol, e.g.:
+which expects the [Coinmarketcap API key] and the three letter currency symbol, e.g.:
 
 ```
 call ether_price_getter ether_price_getter  ["32fd4c0f-59cf-4182-8f22-d4083df0a738", "EUR"]
 ```
 
-Please note that you need to supply a valid  Coinmarketcap API key and that the free account limits the
+Please note that you need to supply a valid Coinmarketcap API key and that the free account limits the
 number of conversions to one. The result from the Fluence service call is the raw json string, e.g.:
 
 ```
@@ -21,7 +21,7 @@ result: String("{\"status\":{\"timestamp\":\"2021-02-22T20:47:59.960Z\",\"error_
 ```
 
 ## Where to Find The Service
-The service is discoverable at [Fluence](https://dash.fluence.dev/) and ready for use.
+The service is discoverable at [Fluence](https://dash.fluence.dev/), e.g., https://dash.fluence.dev/blueprint/a7959f53-a70b-4183-83e0-649f4f91160c, and ready for use.
 
 ## How to Build The Service
 machine setup instructions
@@ -65,7 +65,7 @@ result: String("{\"status\":{\"timestamp\":\"2021-02-22T21:06:42.598Z\",\"error_
 Calling `interface` lists both the curl_adapter and ether_price_getter interfaces. Calling the `ether_price_getter` service function with the API key and conversion currency symbol, `"35fd4b0e-56cf-4182-8f22-d4095cf0a738", "EUR"`, yields the raw json string result expected.
 
 ## How to Deploy The Service
-ToDo: fldist installatin instructions
+ToDo: fldist installation instructions
 
 
 If you don't have a seed ready to use:
@@ -80,73 +80,21 @@ mbp16~/localdev/ethdenver-hackathon/ether-price-getter(eth-price-getter|…) % f
 }
 ```
 
-which yields the keypair and seed and allows us to create a new service:
+which yields a fresh keypair and derived seed and allows us to create a new service:
 
 ```bash
-fldist new_service --env testnet -n "Ether Price Getter" -s AenQdfKCRrh1sajNFkKKV1iojgVnLWyatdaqwzEMopje --ms artifacts/curl_adapter.wasm:curl_cfg.json artifacts/ether_price_getter.wasm:ether_price_getter_cfg.json
+mbp16~/localdev/ethdenver-hackathon/ether-price-getter(eth-price-getter|✚1…) % fldist new_service --env testnet -n "Ether Price Getter" -s AenQdfKCRrh1sajNFkKKV1iojgVnLWyatdaqwzEMopje --ms artifacts/curl_adapter.wasm:curl_cfg.json artifacts/ether_price_getter.wasm:ether_price_getter_cfg.json
+```
+
+specifies that we are creating a new service comprised of two modules, the curl_adapter module and the ether_price_getter module, and generates the confirmation with service id:
+results in:
+
+```
 client seed: AenQdfKCRrh1sajNFkKKV1iojgVnLWyatdaqwzEMopje
 client peerId: 12D3KooWQy61BZ4P1DeJzhvsQ76uQAQc7N8tDk6NDz5BFnnhwuPP
 node peerId: 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb
 uploading blueprint Ether Price Getter to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWQy61BZ4P1DeJzhvsQ76uQAQc7N8tDk6NDz5BFnnhwuPP
-creating service c77f4b0f-b9e2-47ca-8358-7add50bab280
-
-```
-
-## Timeout Error:
-```
-fldist new_service --env testnet -n "Ether Price Getter" -s AenQdfKCRrh1sajNFkKKV1iojgVnLWyatdaqwzEMopje --ms artifacts/curl_adapter.wasm:curl_cfg.json artifacts/ether_price_getter.wasm:ether_price_getter_cfg.json
-client seed: AenQdfKCRrh1sajNFkKKV1iojgVnLWyatdaqwzEMopje
-client peerId: 12D3KooWQy61BZ4P1DeJzhvsQ76uQAQc7N8tDk6NDz5BFnnhwuPP
-node peerId: 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb
-uploading blueprint Ether Price Getter to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWQy61BZ4P1DeJzhvsQ76uQAQc7N8tDk6NDz5BFnnhwuPP
-creating service c77f4b0f-b9e2-47ca-8358-7add50bab280
-Particle expired. Now: 1614029919574, ttl: 60000, ts: 1614029859570
-Particle expired. Now: 1614029922669, ttl: 60000, ts: 1614029862668
-Particle expired. Now: 1614029925656, ttl: 60000, ts: 1614029865653
-Particle expired. Now: 1614029926178, ttl: 60000, ts: 1614029866176
-Something went wrong!
-Error: callback for _callback/createService timed out after 60000
-    at Timeout._onTimeout (/Users/bebo/.nvm/versions/node/v12.16.3/lib/node_modules/@fluencelabs/fldist/node_modules/@fluencelabs/fluence/dist/api.js:169:28)
-    at listOnTimeout (internal/timers.js:549:17)
-    at processTimers (internal/timers.js:492:7)
-```
-
-and:
-
-```
-mbp16~/localdev/ethdenver-hackathon/ether-price-getter(eth-price-getter|✚1…) % fldist new_service --env testnet -n "Ether Price Getter" -s AenQdfKCRrh1sajNFkKKV1iojgVnLWyatdaqwzEMopje --ms artifacts/curl_adapter.wasm:curl_cfg.json artifacts/ether_price_getter.wasm:ether_price_getter_cfg.json  --ttl 90000
-client seed: AenQdfKCRrh1sajNFkKKV1iojgVnLWyatdaqwzEMopje
-client peerId: 12D3KooWQy61BZ4P1DeJzhvsQ76uQAQc7N8tDk6NDz5BFnnhwuPP
-node peerId: 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb
-uploading blueprint Ether Price Getter to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWQy61BZ4P1DeJzhvsQ76uQAQc7N8tDk6NDz5BFnnhwuPP
-creating service 95abbf2b-cf4f-4560-b3a5-2717b340ead8
-Particle expired. Now: 1614030097045, ttl: 90000, ts: 1614030007040
-Particle expired. Now: 1614030100739, ttl: 90000, ts: 1614030010735
-Particle expired. Now: 1614030104327, ttl: 90000, ts: 1614030014325
-Particle expired. Now: 1614030104850, ttl: 90000, ts: 1614030014846
-Something went wrong!
-Error: callback for _callback/createService timed out after 90000
-    at Timeout._onTimeout (/Users/bebo/.nvm/versions/node/v12.16.3/lib/node_modules/@fluencelabs/fldist/node_modules/@fluencelabs/fluence/dist/api.js:169:28)
-    at listOnTimeout (internal/timers.js:549:17)
-    at processTimers (internal/timers.js:492:7)
-mbp16~/localdev/ethdenver-hackathon/ether-price-getter(eth-price-getter|✚1…) %
-```
-
-```
-mbp16~/localdev/ethdenver-hackathon/ether-price-getter(eth-price-getter|✚1…) % fldist new_service --env testnet -n "Ether Price Getter" -s AenQdfKCRrh1sajNFkKKV1iojgVnLWyatdaqwzEMopje --ms artifacts/curl_adapter.wasm:curl_cfg.json artifacts/ether_price_getter.wasm:ether_price_getter_cfg.json  --ttl 180000
-client seed: AenQdfKCRrh1sajNFkKKV1iojgVnLWyatdaqwzEMopje
-client peerId: 12D3KooWQy61BZ4P1DeJzhvsQ76uQAQc7N8tDk6NDz5BFnnhwuPP
-node peerId: 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb
-uploading blueprint Ether Price Getter to node 12D3KooWBUJifCTgaxAUrcM9JysqCcS4CS8tiYH5hExbdWCAoNwb via client 12D3KooWQy61BZ4P1DeJzhvsQ76uQAQc7N8tDk6NDz5BFnnhwuPP
-creating service 5f7497e8-1140-44e4-ad93-87d52e7cb359
-Particle expired. Now: 1614030312210, ttl: 180000, ts: 1614030132205
-Particle expired. Now: 1614030315338, ttl: 180000, ts: 1614030135336
-Particle expired. Now: 1614030318206, ttl: 180000, ts: 1614030138203
-Particle expired. Now: 1614030318738, ttl: 180000, ts: 1614030138732
-Something went wrong!
-Error: callback for _callback/createService timed out after 180000
-    at Timeout._onTimeout (/Users/bebo/.nvm/versions/node/v12.16.3/lib/node_modules/@fluencelabs/fldist/node_modules/@fluencelabs/fluence/dist/api.js:169:28)
-    at listOnTimeout (internal/timers.js:549:17)
-    at processTimers (internal/timers.js:492:7)
-mbp16~/localdev/ethdenver-hackathon/ether-price-getter(eth-price-getter|✚1…) %
+creating service a7959f53-a70b-4183-83e0-649f4f91160c
+service id: 9840c6be-11c8-47e2-98e0-88d758b5a456
+service created successfully
 ```
