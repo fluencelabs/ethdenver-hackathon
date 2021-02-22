@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- use fluence::fce;
+use fluence::fce;
 use crate::curl_request;
 
 static URL_LATEST: &'static str = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest";
