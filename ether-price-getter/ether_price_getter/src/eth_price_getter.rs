@@ -19,13 +19,9 @@ use crate::curl_request;
 
 static URL_LATEST: &'static str = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest";
 
-// const CMC_URL = r#"-H "X-CMC_PRO_API_KEY: {api_key}" -H "Accept: application/json" -d "symbol={currency_symbol}" -G https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"#
-
 
 #[fce]
 pub fn ether_price_getter(api_key: String, currency_symbol: String) -> String {
-    // don't need to do much error checking since he backend rest service will
-    // let curl_args = f!(r#"-H "X-CMC_PRO_API_KEY: {api_key}" -H "Accept: application/json" -d "symbol="ETH, BTC"&convert={currency_symbol}" -G {URL_LATEST}"#);
     let curl_args = f!(r#"-H "X-CMC_PRO_API_KEY: {api_key}" -H "Accept: application/json" -d "symbol=ETH&convert={currency_symbol}" -G {URL_LATEST}"#);
     let response: String = unsafe { curl_request(curl_args) };
     response
