@@ -4,6 +4,8 @@ Welcome to Ethdenver Virtual 2021 and the Fluence Hackathon where juicy bounties
 
 This repo is intended to be a central hub for all things Fluence ETHDenver hackathon.
 
+P.S. This repo is **DEPRECATED**, plz go to [fluencelabs/examples](https://github.com/fluencelabs/examples) for up-to-date examples 
+
 ## Fluence Overview
 [Fluence](https://fluence.network/) is an open application platform powered by peer-to-peer computing protocol and a decentralized licensing system. Fluence enables developers to host applications in the decentralized network and collaborate on live applications, reusing components and data. The protocol creates an open marketplace of compute capacity, so availability and pricing are not controlled by a single company and instead are driven by competitive market forces.
 
